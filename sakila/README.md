@@ -57,8 +57,7 @@ sakila 数据库主要描述了 DVD 租赁系统的业务流程，列举其中�
 
 ## ERD
 
-<img width="480px" src="./imgs/image.png">
-
+![workbench](./imgs/image.png)
 ![drawimage](./imgs/drawsql.png)
 
 或者访问 [drawsql](https://drawsql.app/teams/sql-404/diagrams/sakila/embed)，查看详细 ERD 图。
