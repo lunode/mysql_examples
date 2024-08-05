@@ -37,7 +37,7 @@ mysql -uroot -p12345 -t < employees.sql
 
 <details style="padding: 8px 20px; background-color: rgba(142, 150, 170, 0.14);">
 
-<summary>校验数据</summary>
+<summary markdown="span">校验数据</summary>
 
 需要在 `/path/to/test_db` 目录下：
 
@@ -182,7 +182,7 @@ mysql -uroot -p12345 -t < test_employees_md5.sql
 ## 练习
 
 <details style="padding: 8px 20px; margin-bottom: 20px;background-color: rgba(142, 150, 170, 0.14);">
-<summary>1.查询部门表 departments，9 条记录</summary>
+<summary markdown="span">1.查询部门表 departments，9 条记录</summary>
 
 ```sql
 select * from departments;
@@ -209,7 +209,7 @@ select * from departments;
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary>2.查询部门-员工表 dept_emp </summary>
+<summary markdown="span">2.查询部门-员工表 dept_emp </summary>
 
 由于存在数十万条数据，所以加上 limit 限制查询条目：
 
@@ -230,7 +230,7 @@ select * from dept_name limit 1;
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary>3.查询部门-员工表 dept_emp 记录总数 ，331603 条记录</summary>
+<summary markdown="span">3.查询部门-员工表 dept_emp 记录总数 ，331603 条记录</summary>
 
 ```sql
 select COUNT(*) from dept_emp;
@@ -248,7 +248,7 @@ select COUNT(*) from dept_emp;
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary>4.查询员工表 employees 员工总数，300024 条记录</summary>
+<summary markdown="span">4.查询员工表 employees 员工总数，300024 条记录</summary>
 
 ```sql
 select COUNT(*) from employees;
@@ -271,7 +271,7 @@ select COUNT(*) from employees;
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary>5.查询部门-员工表 dept_emp 重复员工，31579 条记录 </summary>
+<summary markdown="span">5.查询部门-员工表 dept_emp 重复员工，31579 条记录 </summary>
 
 查询重复员工的 ID：
 
@@ -320,7 +320,7 @@ where emp_no in (
 发现部门-员工表的记录总数 331603 和 员工表的员工总数 300024 之间的差值正好就是 31579，说明部门员工表中重复的员工记录就是员工转换部门的结果。
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary>6.查询部门-员工表 dept_emp 重复员工的部门-员工记录，63158 条记录  </summary>
+<summary markdown="span">6.查询部门-员工表 dept_emp 重复员工的部门-员工记录，63158 条记录  </summary>
 
 查询重复员工记录：
 
@@ -375,7 +375,7 @@ where emp_no in (
 且没有一个员工有 3 个部门-员工关系，可以通过查询得出。
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary>7.查询部门-员工表 dept_emp 中超过 2 条记录的员工，0 条记录 </summary>
+<summary markdown="span">7.查询部门-员工表 dept_emp 中超过 2 条记录的员工，0 条记录 </summary>
 
 查询超过 2 条记录的员工个数：
 
@@ -414,7 +414,7 @@ Empty set (0.09 sec)
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary>8.查看部门-经理员工表 dept_manager，</summary>
+<summary markdown="span">8.查看部门-经理员工表 dept_manager，</summary>
 
 ```sql
 select count(distinct emp_no) from dept_manager
@@ -443,7 +443,7 @@ group by dept_no;
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary>9.查询员工薪水表 salaries 薪水发放条目，2844047 条记录</summary>
+<summary markdown="span">9.查询员工薪水表 salaries 薪水发放条目，2844047 条记录</summary>
 
 ```sql
 select count(*) from salaries;
@@ -461,7 +461,7 @@ select count(*) from salaries;
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary>10.查询员工职位表 title 员工职位条目，2844047 条记录</summary>
+<summary markdown="span">10.查询员工职位表 title 员工职位条目，2844047 条记录</summary>
 
 ```sql
 select count(*) from titles;
