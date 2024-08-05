@@ -478,6 +478,140 @@ select count(*) from titles;
 ```
 
 </details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">11.查询部门-员工表，统计各部门的历史员工数量并降序排序</summary>
+
+```sql
+select dept_no, count(emp_no) as count from dept_emp
+group by dept_no
+order by count desc;
+```
+
+结果：
+
+```
++---------+-------+
+| dept_no | count |
++---------+-------+
+| d005    | 85707 |
+| d004    | 73485 |
+| d007    | 52245 |
+| d009    | 23580 |
+| d008    | 21126 |
+| d001    | 20211 |
+| d006    | 20117 |
+| d003    | 17786 |
+| d002    | 17346 |
++---------+-------+
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">12.查询部门-员工表，统计各部门的历史员工数量，并降序排序，生成视图</summary>
+
+生成视图：
+
+```sql
+create view dept_history_emp as
+select dept_no, count(emp_no) as count from dept_emp
+group by dept_no
+order by count desc;
+```
+
+查询视图：
+
+```sql
+select * from dept_history_emp;
+```
+
+删除视图：
+
+```sql
+drop view dept_history_emp;
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">13.使用内联接 inner join，将视图与 departments 表连接，查询部门名称</summary>
+
+```sql
+select dept_history_emp.dept_no, count, dept_name
+from dept_history_emp, departments
+where dept_history_emp.dept_no = departments.dept_no;
+
+```
+
+```sql
+select dept_history_emp.dept_no, count, dept_name from dept_history_emp
+left join departments
+on dept_history_emp.dept_no = departments.dept_no;
+```
+
+结果：
+
+```
++---------+-------+--------------------+
+| dept_no | count | dept_name          |
++---------+-------+--------------------+
+| d005    | 85707 | Development        |
+| d004    | 73485 | Production         |
+| d007    | 52245 | Sales              |
+| d009    | 23580 | Customer Service   |
+| d008    | 21126 | Research           |
+| d001    | 20211 | Marketing          |
+| d006    | 20117 | Quality Management |
+| d003    | 17786 | Human Resources    |
+| d002    | 17346 | Finance            |
++---------+-------+--------------------+
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">14.使用外连接 outer join，将部门经理表 dept_manager 和 departments 使用 left join 连接</summary>
+
+```sql
+SELECT dept_manager.*, dept_name
+FROM dept_manager LEFT JOIN departments
+ON dept_manager.dept_no = departments.dept_no;
+```
+
+结果：
+
+```
++--------+---------+------------+------------+--------------------+
+| emp_no | dept_no | from_date  | to_date    | dept_name          |
++--------+---------+------------+------------+--------------------+
+| 110022 | d001    | 1985-01-01 | 1991-10-01 | Marketing          |
+| 110039 | d001    | 1991-10-01 | 9999-01-01 | Marketing          |
+| 110085 | d002    | 1985-01-01 | 1989-12-17 | Finance            |
+| 110114 | d002    | 1989-12-17 | 9999-01-01 | Finance            |
+| 110183 | d003    | 1985-01-01 | 1992-03-21 | Human Resources    |
+| 110228 | d003    | 1992-03-21 | 9999-01-01 | Human Resources    |
+| 110303 | d004    | 1985-01-01 | 1988-09-09 | Production         |
+| 110344 | d004    | 1988-09-09 | 1992-08-02 | Production         |
+| 110386 | d004    | 1992-08-02 | 1996-08-30 | Production         |
+| 110420 | d004    | 1996-08-30 | 9999-01-01 | Production         |
+| 110511 | d005    | 1985-01-01 | 1992-04-25 | Development        |
+| 110567 | d005    | 1992-04-25 | 9999-01-01 | Development        |
+| 110725 | d006    | 1985-01-01 | 1989-05-06 | Quality Management |
+| 110765 | d006    | 1989-05-06 | 1991-09-12 | Quality Management |
+| 110800 | d006    | 1991-09-12 | 1994-06-28 | Quality Management |
+| 110854 | d006    | 1994-06-28 | 9999-01-01 | Quality Management |
+| 111035 | d007    | 1985-01-01 | 1991-03-07 | Sales              |
+| 111133 | d007    | 1991-03-07 | 9999-01-01 | Sales              |
+| 111400 | d008    | 1985-01-01 | 1991-04-08 | Research           |
+| 111534 | d008    | 1991-04-08 | 9999-01-01 | Research           |
+| 111692 | d009    | 1985-01-01 | 1988-10-17 | Customer Service   |
+| 111784 | d009    | 1988-10-17 | 1992-09-08 | Customer Service   |
+| 111877 | d009    | 1992-09-08 | 1996-01-03 | Customer Service   |
+| 111939 | d009    | 1996-01-03 | 9999-01-01 | Customer Service   |
++--------+---------+------------+------------+--------------------+
+```
+
+</details>
+
 ## 参考
 
 - [博客园(stream886): MySQL 练习-employees 数据库(一) ](https://www.cnblogs.com/stream886/p/6254630.html)
