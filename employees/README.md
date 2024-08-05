@@ -266,9 +266,10 @@ select COUNT(*) from employees;
 
 </details>
 
-出现 `dept_emp` 部门-员工记录总数比 `employess` 员工总数要多，主要是由于员工从一个部门迁移到另外一个部门，但是员工 ID 并没有变。
+出现 部门-员工表 `dept_emp` 记录总数比 `employess` 表员工总数要多，主要是由于员工从一个部门迁移到另外一个部门，但是员工 ID 并没有变。
 
 </details>
+
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary>5.查询部门-员工表 dept_emp 重复员工，31579 条记录 </summary>
 
@@ -321,7 +322,7 @@ where emp_no in (
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary>6.查询部门-员工表 dept_emp 重复员工的部门-员工记录，63158 条记录  </summary>
 
-查询重复员工记录，由于这些员工都有 2 条部门-员工的关系，且没有一个员工有 3 个部门-员工关系，所以一共有 63158 条记录。
+查询重复员工记录：
 
 ```sql
 select count(emp_no) from dept_emp
@@ -369,6 +370,114 @@ where emp_no in (
 
 </details>
 
+由于这些员工都有 2 条部门-员工的关系，额外的 31579 记录都是这些员工的第 2 条记录，加上他们的第 1 条记录，所以这些有着多个 `部门-员工 dept` 记录的员工一共有 63158 记录。
+
+且没有一个员工有 3 个部门-员工关系，可以通过查询得出。
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary>7.查询部门-员工表 dept_emp 中超过 2 条记录的员工，0 条记录 </summary>
+
+查询超过 2 条记录的员工个数：
+
+```sql
+select count(distinct emp_no) from dept_emp
+where emp_no in (
+  select emp_no from dept_emp
+  group by emp_no
+  having count(emp_no) > 2
+);
+```
+
+结果：
+
+```
++------------------------+
+| count(distinct emp_no) |
++------------------------+
+|                      0 |
++------------------------+
+```
+
+查询超过 2 条记录的员工 ID：
+
+```sql
+select emp_no from dept_emp
+group by emp_no
+having count(emp_no) > 2;
+```
+
+结果：
+
+```
+Empty set (0.09 sec)
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary>8.查看部门-经理员工表 dept_manager，</summary>
+
+```sql
+select count(distinct emp_no) from dept_manager
+group by dept_no;
+```
+
+结果：
+
+```
++------------------------+
+| count(distinct emp_no) |
++------------------------+
+|                      2 |
+|                      2 |
+|                      2 |
+|                      4 |
+|                      2 |
+|                      4 |
+|                      2 |
+|                      2 |
+|                      4 |
++------------------------+
+9 rows in set (0.01 sec)
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary>9.查询员工薪水表 salaries 薪水发放条目，2844047 条记录</summary>
+
+```sql
+select count(*) from salaries;
+```
+
+结果：
+
+```sql
++----------+
+| count(*) |
++----------+
+|  2844047 |
++----------+
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary>10.查询员工职位表 title 员工职位条目，2844047 条记录</summary>
+
+```sql
+select count(*) from titles;
+```
+
+结果：
+
+```sql
++----------+
+| count(*) |
++----------+
+|   443308 |
++----------+
+```
+
+</details>
 ## 参考
 
 - [博客园(stream886): MySQL 练习-employees 数据库(一) ](https://www.cnblogs.com/stream886/p/6254630.html)
