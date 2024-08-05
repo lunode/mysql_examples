@@ -14,7 +14,9 @@ sakila 数据的文件如下，当前提供的 sakila SQL 文件版本为 [1.5](
 
 - `sakila-schema.sql` 是建表语句
 - `sakila-data.sql` 是插入数据的语句
-- `sakila.mwb` 是 Mysql Workbench 数据模型文件，可以导入该模型文件，查看数据库的 ER 关系图
+- `sakila.mwb` 是 Mysql Workbench 数据模型文件，可以导入该模型文件，查看数据库的 ERD 关系图
+
+## 导入数据
 
 在 Mysql 容器中导入数据：
 
