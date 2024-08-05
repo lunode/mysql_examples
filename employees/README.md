@@ -161,11 +161,215 @@ mysql -uroot -p12345 -t < test_employees_md5.sql
 
 </details>
 
-## 员工管理数据库业务流程介绍
-
 ## ERD 关系图
 
 ![employees ERD图](./imgs/image.png)
 ![drawSQL 关系图](./imgs/drawsql.png)
 
 或者访问 [drawsql](https://drawsql.app/teams/sql-404/diagrams/employees)，查看详细 ERD 图。
+
+## 员工管理数据库业务流程介绍
+
+表信息介绍
+
+- `departments` 部门表，存储部门 ID 和 Name
+- `employees` 员工表，存储员工 ID，生日，姓名，性别，入职日期(hire_date)
+- `dept_emp` 部门和员工关系表，存储部门 ID，员工 ID，入职时间，和离职时间，在职人员的离职时间为(9999-01-01)
+- `dept_manager` 部门主管表，存储部门 ID，主管 ID（员工 ID），担任时间，卸任时间，未卸任主管的卸任时间(9999-01-01)
+- `salaries` 员工薪水表，存储员工 ID，薪水，开始日期，结束日期
+- `titles` 员工职位信息，存储员工 ID，职位信息，开始日期，结束日期
+
+## 练习
+
+<details style="padding: 8px 20px; margin-bottom: 20px;background-color: rgba(142, 150, 170, 0.14);">
+<summary>1.查询部门表 departments，9 条记录</summary>
+
+```sql
+select * from departments;
+```
+
+结果共 9 行：
+
+```
++---------+--------------------+
+| dept_no | dept_name          |
++---------+--------------------+
+| d009    | Customer Service   |
+| d005    | Development        |
+| d002    | Finance            |
+| d003    | Human Resources    |
+| d001    | Marketing          |
+| d004    | Production         |
+| d006    | Quality Management |
+| d008    | Research           |
+| d007    | Sales              |
++---------+--------------------+
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary>2.查询部门-员工表 dept_emp </summary>
+
+由于存在数十万条数据，所以加上 limit 限制查询条目：
+
+```sql
+select * from dept_name limit 1;
+```
+
+结果：
+
+```
++--------+---------+------------+------------+
+| emp_no | dept_no | from_date  | to_date    |
++--------+---------+------------+------------+
+|  10001 | d005    | 1986-06-26 | 9999-01-01 |
++--------+---------+------------+------------+
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary>3.查询部门-员工表 dept_emp 记录总数 ，331603 条记录</summary>
+
+```sql
+select COUNT(*) from dept_emp;
+```
+
+结果如下：
+
+```
++----------+
+| COUNT(*) |
++----------+
+|   331603 |
++----------+
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary>4.查询员工表 employees 员工总数，300024 条记录</summary>
+
+```sql
+select COUNT(*) from employees;
+```
+
+结果如下：
+
+```
++----------+
+| COUNT(*) |
++----------+
+|   300024 |
++----------+
+```
+
+</details>
+
+出现 `dept_emp` 部门-员工记录总数比 `employess` 员工总数要多，主要是由于员工从一个部门迁移到另外一个部门，但是员工 ID 并没有变。
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary>5.查询部门-员工表 dept_emp 重复员工，31579 条记录 </summary>
+
+查询重复员工的 ID：
+
+```sql
+select emp_no from dept_emp
+group by emp_no
+having count(emp_no) > 1
+limit 3;
+```
+
+结果如下：
+
+```sql
++--------+
+| emp_no |
++--------+
+|  10010 |
+|  10018 |
+|  10029 |
++--------+
+```
+
+查询重复员工的 ID 总数：
+
+```sql
+select count(distinct emp_no) from dept_emp
+where emp_no in (
+  select emp_no from dept_emp
+  group by emp_no
+  having count(emp_no) > 1
+);
+```
+
+结果如下：
+
+```
++------------------------+
+| count(distinct emp_no) |
++------------------------+
+|                  31579 |
++------------------------+
+```
+
+</details>
+
+发现部门-员工表的记录总数 331603 和 员工表的员工总数 300024 之间的差值正好就是 31579，说明部门员工表中重复的员工记录就是员工转换部门的结果。
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary>6.查询部门-员工表 dept_emp 重复员工的部门-员工记录，63158 条记录  </summary>
+
+查询重复员工记录，由于这些员工都有 2 条部门-员工的关系，且没有一个员工有 3 个部门-员工关系，所以一共有 63158 条记录。
+
+```sql
+select count(emp_no) from dept_emp
+where emp_no in (
+  select  emp_no from dept_emp
+  group by emp_no
+  having count(emp_no) > 1
+);
+```
+
+结果：
+
+```
++---------------+
+| count(emp_no) |
++---------------+
+|         63158 |
++---------------+
+```
+
+```sql
+select * from dept_emp
+where emp_no in (
+  select emp_no from dept_emp
+  group by emp_no
+  having count(emp_no) > 1
+) limit 5;
+```
+
+结果如下：
+
+```
++--------+---------+------------+------------+
+| emp_no | dept_no | from_date  | to_date    |
++--------+---------+------------+------------+
+|  10010 | d004    | 1996-11-24 | 2000-06-26 |
+|  10010 | d006    | 2000-06-26 | 9999-01-01 |
+|  10018 | d004    | 1992-07-29 | 9999-01-01 |
+|  10018 | d005    | 1987-04-03 | 1992-07-29 |
+|  10029 | d004    | 1991-09-18 | 1999-07-08 |
++--------+---------+------------+------------+
+```
+
+可以看出 10010，10018 员工都有过 2 次部门记录。
+
+</details>
+
+## 参考
+
+- [博客园(stream886): MySQL 练习-employees 数据库(一) ](https://www.cnblogs.com/stream886/p/6254630.html)
+- [博客园(stream886): MySQL 练习-employees 数据库(二)](https://www.cnblogs.com/stream886/p/6254709.html)

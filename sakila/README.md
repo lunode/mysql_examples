@@ -46,6 +46,13 @@ docker cp /path/to/sakila-schema.sql \
 mysql_containre:/path/tosakila-schema.sql
 ```
 
+## ERD 关系图
+
+![workbench](./imgs/image.png)
+![drawimage](./imgs/drawsql.png)
+
+或者访问 [drawsql](https://drawsql.app/teams/sql-404/diagrams/sakila/embed)，查看详细 ERD 图。
+
 ## sakila DVD 业务流程介绍
 
 sakila 数据库主要描述了 DVD 租赁系统的业务流程，列举其中关键点
@@ -55,14 +62,6 @@ sakila 数据库主要描述了 DVD 租赁系统的业务流程，列举其中�
 - 客户 customer 必须在商店注册之后才有才可以租赁 rental
 - 客户 customer 可以在任意一家商店 store 租赁 rental 影片，店员会维护 影片清单 inventory
 - 客户 customer 可以在任意时间进行付费 payment
-- [其它 ERD 图参考](https://www.visual-paradigm.com/cn/guide/data-modeling/what-is-entity-relationship-diagram/)
-
-## ERD
-
-![workbench](./imgs/image.png)
-![drawimage](./imgs/drawsql.png)
-
-或者访问 [drawsql](https://drawsql.app/teams/sql-404/diagrams/sakila/embed)，查看详细 ERD 图。
 
 ## 参考
 

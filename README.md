@@ -10,6 +10,7 @@
 - worldx
 - menagerie
 - airportdb
+- [其它数据库模型 ERD 图参考](https://www.visual-paradigm.com/cn/guide/data-modeling/what-is-entity-relationship-diagram/)
 
 ## 参考
 
