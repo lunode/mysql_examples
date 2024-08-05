@@ -35,7 +35,9 @@ cd /tmp/test/db
 mysql -uroot -p12345 -t < employees.sql
 ```
 
-::: details 校验数据
+<details style="padding: 8px 20px; background-color: rgba(142, 150, 170, 0.14);">
+
+<summary>校验数据</summary>
 
 需要在 `/path/to/test_db` 目录下：
 
@@ -157,7 +159,7 @@ mysql -uroot -p12345 -t < test_employees_md5.sql
 +---------+--------+
 ```
 
-:::
+</details>
 
 ## 员工管理数据库业务流程介绍
 
