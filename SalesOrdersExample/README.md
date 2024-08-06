@@ -12,7 +12,7 @@ SalesOrdersExample 是 `SQL 查询：从入门到实践（第４版）` 提供�
 使用 `shcema.SQL` 文件导入建表语句，使用 `data.SQL` 导入数据，使用 `views.SQL` 导入视图等文件，对于 `views.SQL` 创建视图文件，也可以暂时不导入。
 
 > [!CAUTION]
-> 对于 DrawSQL 而言，无法正确导入书籍提供的建表语句，可以使用 `schema-for-drawsql.sql` 文件。
+> DrawSQL 疑似不支持 ADD CONSTRINAT 语句，可以删除该关键词，直接使用 Foreign Key 关键词。或者直接使用本文档同目录下 [schema-for-drawsql.sql](./schema-for-drawsql.sql) 文件。
 
 ```sh
 mysql -uroot -p12345 < "schema.SQL"
@@ -53,6 +53,8 @@ mysql -uroot -p12345 -t < /tmp/data.SQL
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.4.1 使用内连接，显示所有商品及其所属的类别</summary>
 
+返回 40 条记录：
+
 ```sql
 select ProductName, Categories.CategoryDescription
 from Products
@@ -67,6 +69,8 @@ on Products.CategoryID = Categories.CategoryID;
 
 由于顾客可能多次订购头盔，因此使用了关键字 DISTINCT 来消除重复行。
 
+返回 25 条记录：
+
 ```sql
 select DISTINCT Customers.CustomerID, Customers.CustLastName, Customers.CustFirstName
 from Orders
@@ -79,7 +83,7 @@ on Order_Details.ProductNumber = Products.ProductNumber
 where ProductName like '%helmet%';
 ```
 
-书中示例:
+书中示例，返回 25 条记录:
 
 ```sql
 SELECT DISTINCT Customers.CustFirstName, Customers.CustLastName

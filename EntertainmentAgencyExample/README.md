@@ -12,7 +12,7 @@ EntertainmentAgencyExample 是 `SQL 查询：从入门到实践（第４版）` 
 使用 `shcema.SQL` 文件导入建表语句，使用 `data.SQL` 导入数据，使用 `views.SQL` 导入视图等文件，对于 `views.SQL` 创建视图文件，也可以暂时不导入。
 
 > [!CAUTION]
-> 对于 DrawSQL 而言，无法正确导入书籍提供的建表语句，可以使用 `schema-for-drawsql.sql` 文件。
+> DrawSQL 疑似不支持 ADD CONSTRINAT 语句，可以删除该关键词，直接使用 Foreign Key 关键词。或者直接使用本文档同目录下 [schema-for-drawsql.sql](./schema-for-drawsql.sql) 文件。
 
 ```sh
 mysql -uroot -p12345 < "schema.SQL"
@@ -48,6 +48,8 @@ mysql -uroot -p12345 -t < /tmp/data.SQL
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.4.1 使用内连接，列出演唱组合及其演出合约的开始日期、结束日期和价格</summary>
 
+返回 111 条记录：
+
 ```sql
 select EntStageName, StartDate, EndDate, ContractPrice
 from Entertainers
@@ -60,6 +62,8 @@ on Entertainers.EntertainerID = Engagements.EntertainerID;
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.4.2 使用内连接，查找为顾客姓 Berg 或 姓 Hallmark 演出过的演唱组合</summary>
 
+返回 8 条记录：
+
 ```sql
 select distinct Entertainers.EntStageName from Entertainers
 inner join Engagements
@@ -70,7 +74,7 @@ where Customers.CustLastName =  'Berg'
 or Customers.CustLastName = 'Hallmark';
 ```
 
-书中示例：
+书中示例，返回 8 条记录：
 
 ```sql
 SELECT DISTINCT Entertainers.EntStageName

@@ -12,7 +12,7 @@ RecipesExample 是 `SQL 查询：从入门到实践（第４版）` 提供的示
 使用 `shcema.SQL` 文件导入建表语句，使用 `data.SQL` 导入数据，使用 `views.SQL` 导入视图等文件，对于 `views.SQL` 创建视图文件，也可以暂时不导入。
 
 > [!CAUTION]
-> 对于 DrawSQL 而言，无法正确导入书籍提供的建表语句，可以使用 `schema-for-drawsql.sql` 文件。
+> DrawSQL 疑似不支持 ADD CONSTRINAT 语句，可以删除该关键词，直接使用 Foreign Key 关键词。或者直接使用本文档同目录下 [schema-for-drawsql.sql](./schema-for-drawsql.sql) 文件。
 
 ```sh
 mysql -uroot -p12345 < "schema.SQL"
@@ -40,13 +40,13 @@ mysql -uroot -p12345 -t < /tmp/data.SQL
 
 数据库包含 6 张表：
 
-- `Recipes`
+- `Recipes` 菜品表
   - `RecipeID` 菜品 ID
   - `RecipeTitle` 菜品名称
   - `RecipeClassID` 菜品分类 ID
   - `Preparation` 菜品制作方法
   - `Notes` 菜品提示
-- `Recipe_Classes`
+- `Recipe_Classes` 菜品分类表
   - `RecipeClassID` 菜品分类 ID
   - `RecipeClassDescription` 菜品分类名称
 - `Ingredients` 食材表（成分）
@@ -60,7 +60,7 @@ mysql -uroot -p12345 -t < /tmp/data.SQL
 - `Recipe_Ingredients` 菜品-食材 linking table
   - `RecipeID` 菜品 ID
   - `IngredientID` 食材 ID
-  - `RecipeSeqNo` 顺序
+  - `RecipeSeqNo` 食材顺序
   - `MeasureAmountID` 计量单位 ID
   - `Amount` 食材用量用量
 - `Measurements` 计量单位表
@@ -72,12 +72,16 @@ mysql -uroot -p12345 -t < /tmp/data.SQL
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.2.3-2 使用内连接，列出数据库中所有菜品的名称，制作方法和菜品类型描述</summary>
 
+返回 15 条记录
+
 ```sql
 select RecipeTitle, RecipeClassDescription, Preparation
 from Recipes
 inner join Recipe_Classes
 on Recipe_Classes.RecipeClassID = Recipes.RecipeClassID;
 ```
+
+书中提供的其它示例：
 
 ```sql
 select RecipeTitle, RecipeClassDescription, Preparation
@@ -88,6 +92,8 @@ where Recipe_Classes.RecipeClassID = Recipes.RecipeClassID;
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.2.3-2 使用内连接，列出数据库中菜品分类为主菜 Main course 或者甜品 Dessert 的菜品的名称，制作方法和菜品类型描述</summary>
+
+返回 9 条记录：
 
 ```sql
 select RecipeTitle, RecipeClassDescription, Preparation
@@ -106,6 +112,8 @@ or RecipeClassDescription = "Dessert";
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.2.3-3 使用子查询优化上述查询</summary>
+
+返回 9 条记录：
 
 ```sql
 select RecipeTitle, Preparation, DerivedTable.RecipeClassDescription
@@ -132,6 +140,8 @@ on DerivedTable.RecipeClassID = Recipes.RecipeClassID;
 
 <summary markdown="span">#8.2.3-4 五表连接，获取菜品类型、菜品名、制作说明、食材名、食材序号、食材数量和食材度 量单位，并按菜品名和序号排序</summary>
 
+返回 88 条记录：
+
 ```sql
 select Recipe_Classes.RecipeClassDescription,
 	Recipes.RecipeTitle,
@@ -155,6 +165,8 @@ Recipes.RecipeTitle;
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.2.3-4 五表连接，书中示例</summary>
+
+返回 88 条记录：
 
 ```sql
 SELECT
@@ -190,6 +202,8 @@ ORDER BY RecipeTitle, RecipeSeqNo
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.2.3-4 五表连接，书中示例 2</summary>
 
+返回 88 条记录：
+
 ```sql
 SELECT
 Recipe_Classes.RecipeClassDescription,
@@ -222,6 +236,8 @@ ORDER BY RecipeTitle, RecipeSeqNo
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.2.4 列出所有菜品的名称以及制作每种菜品所需的食材</summary>
 
+返回 88 条记录：
+
 ```sql
 select RecipeTitle, IngredientName
 from Recipes
@@ -231,7 +247,7 @@ inner join Ingredients
 on Recipe_Ingredients.IngredientID = Ingredients.IngredientID;
 ```
 
-书中示例：
+书中示例，返回 88 条记录：
 
 ```sql
 SELECT
@@ -250,6 +266,8 @@ ON Ingredients.IngredientID = Recipe_Ingredients.IngredientID;
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.4.1 列出包含食材牛肉或大蒜的菜品</summary>
+
+返回 5 条记录：
 
 ```sql
 select DISTINCT Recipes.RecipeTitle
@@ -272,7 +290,7 @@ where Recipe_Ingredients.IngredientID in (
 );
 ```
 
-书中示例：
+书中示例，返回 5 条记录：
 
 ```sql
 SELECT DISTINCT Recipes.RecipeTitle
@@ -285,6 +303,8 @@ WHERE Recipe_Ingredients.IngredientID IN (1, 9);
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.4.1 使用内连接，列出主菜及其使用的所有食材</summary>
+
+返回 53 条记录：
 
 ```sql
 select RecipeTitle, IngredientName, MeasurementDescription, Amount
@@ -300,7 +320,7 @@ on Recipe_Ingredients.MeasureAmountID = Measurements.MeasureAmountID
 where Recipe_Classes.RecipeClassDescription = 'Main Course';
 ```
 
-书中示例：
+书中示例，返回 53 条记录：
 
 ```sql
 SELECT Recipes.RecipeTitle,Ingredients.IngredientName,

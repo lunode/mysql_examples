@@ -37,7 +37,7 @@ DrawSQL 免费版不支持 > 15 张表。
 
 ## 表字段注释
 
-数据库包含 13 张表：
+数据库包含 21 张表：
 
 - `Subjects` 课程科目表，如数学，物理。
 - `Classes` 课程安排表
@@ -48,6 +48,8 @@ DrawSQL 免费版不支持 > 15 张表。
 <summary markdown="span">#8.4.1 使用内连接，列出周三上课的课程所属的科目</summary>
 
 由于同一个课程的不同部分可能安排在同一天上课，因此我使用了关键字 DISTINCT 来消除重复行。
+
+返回 34 条记录：
 
 ```sql
 select distinct SubjectName

@@ -12,7 +12,7 @@ BowlingLeagueExample 是 `SQL 查询：从入门到实践（第４版）` 提供
 使用 `shcema.SQL` 文件导入建表语句，使用 `data.SQL` 导入数据，使用 `views.SQL` 导入视图等文件，对于 `views.SQL` 创建视图文件，也可以暂时不导入。
 
 > [!CAUTION]
-> 对于 DrawSQL 而言，无法正确导入书籍提供的建表语句，可以使用 `schema-for-drawsqls.sql` 文件。
+> DrawSQL 疑似不支持 ADD CONSTRINAT 语句，可以删除该关键词，直接使用 Foreign Key 关键词。或者直接使用本文档同目录下 [schema-for-drawsql.sql](./schema-for-drawsql.sql) 文件。
 
 ```sh
 mysql -uroot -p12345 < "schema.SQL"
@@ -61,6 +61,8 @@ mysql -uroot -p12345 -t < /tmp/data.SQL
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.4.1 使用内连接，列出保龄球队及其队长的姓名</summary>
 
+返回 10 条记录：
+
 ```sql
 SELECT
 Teams.TeamName,
@@ -74,9 +76,11 @@ ON Teams.CaptainID = Bowlers.BowlerID;
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 
-<summary markdown="span">#8.4.4 使用内连接，列出所有的保龄球联赛、场次和各局的结果 **`较复杂`** </summary>
+<summary markdown="span">#8.4.4 使用内连接，列出所有的保龄球联赛、场次和各局的结果 </summary>
 
 为了列举比赛双方，需要 3 次连表 Team，获取双方的队名，及胜利队的队名。
+
+返回 168 条记录：
 
 ```sql
 SELECT
@@ -101,7 +105,9 @@ Tournaments.TourneyDate,
 Tourney_Matches.MatchID;
 ```
 
-书中示例，为了列举比赛双方，需要额外两次连表 Team，获取双方的队名，书中使用了
+书中示例，为了获取比赛双方和赢家的队名，需要连 Team 表 3 次
+
+返回 168 条记录：
 
 ```sql
 SELECT
