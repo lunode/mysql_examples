@@ -52,6 +52,8 @@ docker exec -it container_name mysql -uroot -p12345 -t < /path/to/data.SQL
   - `MatchID` 联赛场次 ID
   - `GameNumber` 该比赛场次回合数
   - `WinningTeamID` 该比赛场次胜利团队 ID
+- `Bowler_Scores` 该比赛场次胜利团队 ID
+  - `HandiCapScore` 让分得分，室内联赛让步优待分
 
 ## 练习
 

@@ -481,3 +481,209 @@ where Ingredients.IngredientName = 'Beef';
 ```
 
 </details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.2 使用外连接，列出所有的菜品类型以及各类型包含的菜品</summary>
+
+查询 Recipes 表，返回 15 条记录：
+
+```sql
+select * from Recipes;
+```
+
+返回 16 行记录：
+
+```sql
+select RecipeClassDescription, RecipeTitle from Recipe_Classes
+left outer join Recipes
+on Recipe_Classes.RecipeClassID = Recipes.RecipeClassID;
+```
+
+使用 Recipe_Classes 分类表作为左表进行查询，除了两张表 **`交集`** 的 15 条菜品记录外，还多出了 1 条分类记录，该记录没有任何分类。
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.2 使用外连接，列出不包含任何菜品的菜品类型</summary>
+
+```sql
+select RecipeClassDescription, RecipeTitle from Recipe_Classes
+left outer join Recipes
+on Recipe_Classes.RecipeClassID = Recipes.RecipeClassID
+where Recipes.RecipeID is null;
+```
+
+使用 Recipe_Classes 分类表作为左表进行查询，除了两张表 **`交集`** 的 15 条菜品记录外，还多出了 1 条分类记录，该记录没有任何分类。
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.2 使用外连接，列出菜品类型为沙拉 Salad，汤类 Soups 和主菜 Main course 类型的菜品</summary>
+
+返回 9 条记录：
+
+```sql
+select Recipe_Classes.RecipeClassDescription, Recipes.RecipeTitle
+from Recipe_Classes
+left outer join Recipes
+on Recipe_Classes.RecipeClassID =  Recipes.RecipeClassID
+where Recipe_Classes.RecipeClassDescription = 'Salad'
+or Recipe_Classes.RecipeClassDescription = 'Soup'
+or Recipe_Classes.RecipeClassDescription = 'Main course';
+```
+
+书中示例，返回 9 条记录：
+
+```sql
+SELECT
+	RCFiltered.RecipeClassDescription,
+	R.RecipeTitle
+FROM
+	(
+	SELECT
+		RecipeClassID,
+		RecipeClassDescription
+	FROM
+		Recipe_Classes
+	WHERE
+		Recipe_Classes.RecipeClassDescription = 'Salad'
+		OR Recipe_Classes.RecipeClassDescription = 'Soup'
+		OR Recipe_Classes.RecipeClassDescription = 'Main Course'
+	) AS RCFiltered
+	LEFT OUTER JOIN Recipes AS R ON RCFiltered.RecipeClassID = R.RecipeClassID
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.2 使用外连接，列出菜品类型为沙拉 Salad，汤类 Soups 和主菜 Main course 类型的菜品，并且菜品名称中含有 beef。</summary>
+
+使用不同的查询方式，返回的记录数不一样，但都包含一条 `Main course | Roast Beef` 的记录。
+
+```sql
+SELECT RCFiltered.RecipeClassDescription, R.RecipeTitle
+              FROM
+                  (SELECT RecipeClassID,
+                      RecipeClassDescription
+                  FROM Recipe_Classes AS RC
+                  WHERE RC.RecipeClassDescription = 'Salads'
+                      OR RC.RecipeClassDescription = 'Soup'
+                      OR RC.RecipeClassDescription = 'Main Course') AS RCFiltered
+              LEFT OUTER JOIN
+                  (SELECT Recipes.RecipeClassID, Recipes.RecipeTitle
+										FROM Recipes
+                  WHERE Recipes.RecipeTitle LIKE '%beef%')
+                AS R
+              ON RCFiltered.RecipeClassID = R.RecipeClassID
+```
+
+```sql
+SELECT Recipe_Classes.RecipeClassDescription,
+       Recipes.RecipeTitle
+    FROM Recipe_Classes
+    LEFT OUTER JOIN Recipes
+    ON Recipe_Classes.RecipeClassID =
+       Recipes.RecipeClassID
+    AND
+       (Recipe_Classes.RecipeClassDescription = 'Salads'
+    OR Recipe_Classes.RecipeClassDescription = 'Soup'
+    OR Recipe_Classes.RecipeClassDescription =
+       'Main Course')
+    AND Recipes.RecipeTitle LIKE '%beef%'
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.2 使用外连接，从 Recipes 数据库中获取所有的菜品类型以及各类型中菜品的名称、制作说明、食材名、食材序 号、食材数量和食材度量单位，并按菜品名和序号排序</summary>
+
+返回 88 条记录：
+
+```sql
+select
+Recipe_Classes.RecipeClassDescription,
+Recipes.RecipeTitle
+from Recipe_Classes
+left join Recipes
+on Recipe_Classes.RecipeClassID = Recipes.RecipeClassID
+inner join Recipe_Ingredients
+on Recipes.RecipeID = Recipe_Ingredients.RecipeID
+inner join Ingredients
+on Recipe_Ingredients.IngredientID = Ingredients.IngredientID
+```
+
+书中示例，返回 88 条记录：
+
+```sql
+SELECT
+	Recipe_Classes.RecipeClassDescription,
+	Recipes.RecipeTitle,
+	Recipes.Preparation,
+	Ingredients.IngredientName,
+	Recipe_Ingredients.RecipeSeqNo,
+	Recipe_Ingredients.Amount,
+	Measurements.MeasurementDescription
+FROM
+	(((
+				Recipe_Classes
+				LEFT OUTER JOIN Recipes ON Recipe_Classes.RecipeClassID = Recipes.RecipeClassID
+				)
+			INNER JOIN Recipe_Ingredients ON Recipes.RecipeID = Recipe_Ingredients.RecipeID
+			)
+		INNER JOIN Ingredients ON Ingredients.IngredientID = Recipe_Ingredients.IngredientID
+	)
+	INNER JOIN Measurements ON Measurements.MeasureAmountID = Recipe_Ingredients.MeasureAmountID
+ORDER BY
+	RecipeTitle,
+	RecipeSeqNo
+```
+
+其中 Soup 分类是没有菜品的，上述 SQL 在第一个 left join 后使用了 inner join，导致菜品 Soup 分类数据丢失，如果需要这个 `空行`，则可以将 inner join 统统修改为 left join
+
+返回 89 条记录：
+
+```sql
+select
+Recipe_Classes.RecipeClassDescription,
+Recipes.RecipeTitle
+from Recipe_Classes
+left join Recipes
+on Recipe_Classes.RecipeClassID = Recipes.RecipeClassID
+left join Recipe_Ingredients
+on Recipes.RecipeID = Recipe_Ingredients.RecipeID
+left join Ingredients
+on Recipe_Ingredients.IngredientID = Ingredients.IngredientID
+```
+
+| RecipeClassDescription | RecipeTitle   |
+| ---------------------- | ------------- |
+| ...                    | ...           |
+| Dessert                | Coupe Colonel |
+| Soup                   |               |
+
+> [!CAUTION]
+> 需要注意，外连接只在 1 对多关系时才会按照预期那样工作，而 Recipes, Recipe_Classes 是 1 对多 Recipe_Classes，Recipe_Ingredients 是 1 对多的关系，所以下面书中示例并没有像我所给出示例那样，全部使用内连接，从而导致 Soup 信息的丢失，而我上面全部使用 left join 也并不会影响数据。
+
+书中示例，返回 **`88`** 条记录：
+
+```sql
+SELECT Recipe_Classes.RecipeClassDescription, Recipes.RecipeTitle, Recipes.Preparation,
+Ingredients.IngredientName,Recipe_Ingredients.RecipeSeqNo,
+Recipe_Ingredients.Amount,Measurements.MeasurementDescription
+FROM (
+	(
+		(
+			Recipe_Classes
+      LEFT OUTER JOIN Recipes
+      ON Recipe_Classes.RecipeClassID =Recipes.RecipeClassID
+		)
+    LEFT OUTER JOIN Recipe_Ingredients
+    ON Recipes.RecipeID = Recipe_Ingredients.RecipeID
+	)
+	INNER JOIN Ingredients
+  ON Ingredients.IngredientID = Recipe_Ingredients.IngredientID
+)
+INNER JOIN Measurements
+ON Measurements.MeasureAmountID = Recipe_Ingredients.MeasureAmountID
+ORDER BY RecipeTitle, RecipeSeqNo
+```
+
+</details>

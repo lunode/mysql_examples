@@ -41,9 +41,12 @@ docker exec -it container_name mysql -uroot -p12345 -t < /path/to/data.SQL
   - `ProductNumber` 商品 ID
   - `ProductName` 商品名称
   - `ProductDescription` 商品描述
-  - `RetailPrice`
+  - `RetailPrice` 零售价格
   - `QuantityOnHand`
   - `CategoryID` 分类 ID
+- `Orders`
+  - `OrderDate` 下单日期
+  - `ShipDate` 发货日期
 
 ## 练习
 

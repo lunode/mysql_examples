@@ -38,6 +38,7 @@ DrawSQL 免费版不支持 > 15 张表。
 
 - `Subjects` 课程科目表，如数学，物理。
 - `Classes` 课程安排表
+  - `Credits` 学分，学完课程可以获得学分
 - `Faculty` 教职工表
 - `Faculty_Subjects` 教职工-课程科目表，教职工教习的科目
   - `ProficiencyRating`
