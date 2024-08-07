@@ -22,11 +22,8 @@ mysql -uroot -p12345 < "data.SQL"
 导入数据到 Mysql 容器中，首先需要将文件拷贝到容器中：
 
 ```sh
-docker cp /path/to/schema.SQL contianer_name:/tmp/schema.SQL
-docker cp /path/to/data.SQL contianer_name:/tmp/data.SQL
-docker exec -it sh container_name sh
-mysql -uroot -p12345 -t < /tmp/schema.SQL
-mysql -uroot -p12345 -t < /tmp/data.SQL
+docker exec -it container_name mysql -uroot -p12345 -t < /path/to/schema.SQL
+docker exec -it container_name mysql -uroot -p12345 -t < /path/to/data.SQL
 ```
 
 ## ERD 关系图
@@ -341,6 +338,146 @@ FROM (
 INNER JOIN Measurements
 ON Measurements.MeasureAmountID = Recipe_Ingredients.MeasureAmountID
 WHERE Recipe_Classes.RecipeClassDescription = 'Main course';
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#8.4.3 使用内连接，显示包含胡萝卜的菜品的所有食材</summary>
+
+参考 DrawSQL ERD 图，先将菜品表 Recipes 与菜品-食材 Recipe_Ingredients 表 inner join，然后再 inner join Ingredients 表，获取到包含胡萝卜食材的菜品 ID，然后再 inner join 一次 Recipe_Ingredients 表，获取该菜品 ID 的所有食材。
+
+返回 16 条记录：
+
+```sql
+SELECT
+	RecipeIDTable.RecipeID,
+	Ingredients.IngredientName
+FROM (
+	SELECT DISTINCT Recipe_Ingredients.RecipeID
+	FROM Recipe_Ingredients
+	INNER JOIN Ingredients ON Recipe_Ingredients.IngredientID = Ingredients.IngredientID
+	WHERE Ingredients.IngredientName = 'Carrot'
+) AS RecipeIDTable
+INNER JOIN Recipe_Ingredients ON RecipeIDTable.RecipeID = Recipe_Ingredients.RecipeID
+INNER JOIN Ingredients ON Recipe_Ingredients.IngredientID = Ingredients.IngredientID
+```
+
+书中示例，返回 16 条
+
+```sql
+SELECT
+	Recipes.RecipeID,
+	Recipes.RecipeTitle,
+	Ingredients.IngredientName
+FROM(
+	(
+		Recipes
+		INNER JOIN Recipe_Ingredients
+		ON Recipes.RecipeID = Recipe_Ingredients.RecipeID
+	)
+	INNER JOIN Ingredients ON Ingredients.IngredientID = Recipe_Ingredients.IngredientID
+)
+INNER JOIN (
+	SELECT Recipe_Ingredients.RecipeID
+	FROM Ingredients
+	INNER JOIN Recipe_Ingredients ON Ingredients.IngredientID = Recipe_Ingredients.IngredientID
+	WHERE Ingredients.IngredientName = 'Carrot'
+) AS Carrots ON Recipes.RecipeID = Carrots.RecipeID
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#8.6 使用内连接，列出所有属于沙拉的菜品</summary>
+
+返回 1 条记录：
+
+```sql
+select Recipes.RecipeTitle
+from Recipes
+inner join Recipe_Classes
+on Recipes.RecipeClassID = Recipe_Classes.RecipeClassID
+where Recipe_Classes.RecipeClassDescription = 'Salad';
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#8.6 使用内连接，列出所有包含奶制品的菜品</summary>
+
+返回 2 条记录：
+
+```sql
+
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#8.6 使用内连接，找出默认度量单位相同的食材</summary>
+
+同一张表自连接，需要排除主键 ID 相同的行。
+
+返回 628 条记录：
+
+```sql
+select DISTINCT *
+from Ingredients A
+inner join Ingredients B
+on A.MeasureAmountID = B.MeasureAmountID
+and A.IngredientID != B.IngredientID;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#8.6 使用内连接，显示包含牛肉和大蒜的菜品</summary>
+
+拆分需求，包含牛肉食材的菜品和包含大蒜菜品食材的交集。
+
+返回 1 条记录：
+
+```sql
+select A.RecipeTitle from (
+  select DISTINCT Recipes.RecipeTitle, Recipes.RecipeID
+  from Recipes
+  inner join Recipe_Ingredients
+  on Recipes.RecipeID = Recipe_Ingredients.RecipeID
+  inner join Ingredients
+  on Recipe_Ingredients.IngredientID = Ingredients.IngredientID
+  where Ingredients.IngredientName = 'Beef'
+) as A
+inner join
+(
+  select DISTINCT Recipes.RecipeTitle, Recipes.RecipeID
+  from Recipes
+  inner join Recipe_Ingredients
+  on Recipes.RecipeID = Recipe_Ingredients.RecipeID
+  inner join Ingredients
+  on Recipe_Ingredients.IngredientID = Ingredients.IngredientID
+  where  Ingredients.IngredientName = 'Garlic'
+) AS B
+on A.RecipeID = B.RecipeID
+```
+
+可以优化一下结构:
+
+```sql
+
+select DISTINCT Recipes.RecipeTitle, Recipes.RecipeID
+from Recipes
+inner join Recipe_Ingredients
+on Recipes.RecipeID = Recipe_Ingredients.RecipeID
+inner join Ingredients
+on Recipe_Ingredients.IngredientID = Ingredients.IngredientID
+inner join (
+  select DISTINCT Recipes.RecipeTitle, Recipes.RecipeID
+  from Recipes
+  inner join Recipe_Ingredients
+  on Recipes.RecipeID = Recipe_Ingredients.RecipeID
+  inner join Ingredients
+  on Recipe_Ingredients.IngredientID = Ingredients.IngredientID
+  where  Ingredients.IngredientName = 'Garlic'
+) AS A
+on A.RecipeID = Recipes.RecipeID
+where Ingredients.IngredientName = 'Beef';
 ```
 
 </details>

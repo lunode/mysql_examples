@@ -22,11 +22,8 @@ mysql -uroot -p12345 < "data.SQL"
 导入数据到 Mysql 容器中，首先需要将文件拷贝到容器中：
 
 ```sh
-docker cp /path/to/schema.SQL contianer_name:/tmp/schema.SQL
-docker cp /path/to/data.SQL contianer_name:/tmp/data.SQL
-docker exec -it sh container_name sh
-mysql -uroot -p12345 -t < /tmp/schema.SQL
-mysql -uroot -p12345 -t < /tmp/data.SQL
+docker exec -it container_name mysql -uroot -p12345 -t < /path/to/schema.SQL
+docker exec -it container_name mysql -uroot -p12345 -t < /path/to/data.SQL
 ```
 
 ## ERD 关系图
@@ -87,6 +84,123 @@ INNER JOIN Customers
 ON Customers.CustomerID = Engagements.CustomerID
 WHERE Customers.CustLastName = 'Berg'
 OR Customers.CustLastName = 'Hallmark';
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#8.4.3 使用内连接，列出为 Berg 和 Hallmark 都演出过的演唱组合</summary>
+
+可以将需求拆分为，为 Berg 演出过的演唱组合与为 Hallmark 演出过的演唱组合的交集。
+
+返回 4 条记录：
+
+```sql
+select distinct A.EntStageName
+from(
+	(
+		select Entertainers.EntertainerID, EntStageName from Entertainers
+		inner join Engagements
+		on Engagements.EntertainerID = Entertainers.EntertainerID
+		inner join Customers
+		on Customers.CustomerID = Engagements.CustomerID
+		where Customers.CustLastName = "Berg"
+	) as A
+	inner join
+	(
+		select Entertainers.EntertainerID, Entertainers.EntStageName from Entertainers
+		inner join Engagements
+		on Engagements.EntertainerID = Entertainers.EntertainerID
+		inner join Customers
+		on Customers.CustomerID = Engagements.CustomerID
+		where Customers.CustLastName = "Hallmark"
+	) as B
+	on A.EntertainerID = B.EntertainerID
+);
+```
+
+书中示例，返回 4 条记录：
+
+```sql
+SELECT EntBerg.EntStageName
+    FROM
+       (SELECT DISTINCT Entertainers.EntertainerID,
+          Entertainers.EntStageName
+        FROM (Entertainers
+        INNER JOIN Engagements
+          ON Entertainers.EntertainerID =
+             Engagements.EntertainerID)
+        INNER JOIN Customers
+          ON Customers.CustomerID =
+             Engagements.CustomerID
+        WHERE Customers.CustLastName = 'Berg')
+    AS EntBerg INNER JOIN
+      (SELECT DISTINCT Entertainers.EntertainerID,
+          Entertainers.EntStageName
+       FROM (Entertainers
+       INNER JOIN Engagements
+         ON Entertainers.EntertainerID =
+            Engagements.EntertainerID)
+       INNER JOIN Customers
+         ON Customers.CustomerID =
+            Engagements.CustomerID
+       WHERE Customers.CustLastName = 'Hallmark')
+      AS EntHallmark
+    ON EntBerg.EntertainerID =
+        EntHallmark.EntertainerID
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#8.6 使用内连接，显示经纪人及其签订的演出合约的日期，并按演出合约的起始日期排序</summary>
+
+返回 111 条记录：
+
+```sql
+select Agents.AgtFirstName, Agents.AgtLastName, Engagements.StartDate, Engagements.StartTime
+from Agents
+inner join Engagements
+on Agents.AgentID = Engagements.AgentID
+order by Engagements.StartDate, Engagements.StartTime;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#8.6 使用内连接，列出顾客及其签约过的演唱组合</summary>
+
+返回 75 条记录：
+
+```sql
+select
+distinct Customers.CustomerID,
+Customers.CustFirstName,
+Customers.CustLastName,
+Entertainers.EntertainerID
+from Customers
+inner join Engagements
+on Customers.CustomerID = Engagements.CustomerID
+inner join Entertainers
+on Engagements.EntertainerID = Entertainers.EntertainerID;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#8.6 使用内连接，找出居住地邮政编码相同的经纪人和演唱组合</summary>
+
+返回 10 条记录：
+
+```sql
+select
+distinct
+Entertainers.EntStageName,
+Entertainers.EntZipCode,
+Agents.AgtFirstName,
+Agents.AgtLastName,
+Agents.AgtZipCode
+from Entertainers
+inner JOIN Agents
+on Entertainers.EntZipCode = Agents.AgtZipCode;
 ```
 
 </details>

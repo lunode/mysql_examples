@@ -22,11 +22,8 @@ mysql -uroot -p12345 < "data.SQL"
 导入数据到 Mysql 容器中，首先需要将文件拷贝到容器中：
 
 ```sh
-docker cp /path/to/schema.SQL contianer_name:/tmp/schema.SQL
-docker cp /path/to/data.SQL contianer_name:/tmp/data.SQL
-docker exec -it sh container_name sh
-mysql -uroot -p12345 -t < /tmp/schema.SQL
-mysql -uroot -p12345 -t < /tmp/data.SQL
+docker exec -it container_name mysql -uroot -p12345 -t < /path/to/schema.SQL
+docker exec -it container_name mysql -uroot -p12345 -t < /path/to/data.SQL
 ```
 
 ## ERD 关系图
@@ -76,7 +73,7 @@ ON Teams.CaptainID = Bowlers.BowlerID;
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 
-<summary markdown="span">#8.4.4 使用内连接，列出所有的保龄球联赛、场次和各局的结果 </summary>
+<summary markdown="span">#8.4.2 使用内连接，列出所有的保龄球联赛、场次和各局的结果 </summary>
 
 为了列举比赛双方，需要 3 次连表 Team，获取双方的队名，及胜利队的队名。
 
@@ -138,6 +135,189 @@ FROM (
 )
 INNER JOIN Teams AS Winner
 ON Winner.TeamID = Match_Games.WinningTeamID;
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#8.4.3 **`思路1`** 使用内连接，找出在保龄球馆 Thunderbird Lanes 和 Bolero Lanes 比赛时，原始得分都不低于 170 的投球手 </summary>
+
+可以将需求拆分成两部分，先找出在保龄球馆 Thunderbird Lanes 内原始得分不低于 170 的投球手，然后再找到在保龄球馆 Bolero Lanes 内原始得分不低于 170 的投球手。
+
+从 DrawSQL 的 ERD 关系图上看，我们顺着保龄球联赛表 Tourments 的关系从左往右走过去，首先 inner join 联赛比赛表 Tourney_Matchney_Matches 表，获得所有联赛以及所有比赛场次信息，再继续 inner join 比赛回合表，这样就得出了所有场次的比赛回合信息，接着 inner join 比赛分数表，获取了每个回合比赛的分数，这样就拿到了所有联赛所有场次所有回合的比赛分数，然后再连上保龄球员 Bowlers 表，就获取到每个回合的分数所对应的球员，再加上 filter condition，就能获取到具体信息。最后，将两个集合取交集就能得出结果。
+
+> [!NOTE]
+> 看完下面思路 2，发现思路 1 的 Match_Games 表也可以不连，虽然不符合直觉逻辑，但不影响结果。
+
+> [!CAUTION]
+> 如果查询出错，可能需要设置 `set GLOBAL max_allowed_packet = 1024 * 1024 * 1`
+
+返回 11 条记录：
+
+```sql
+select distinct A.BowlerID, A.BowlerFirstName, A.BowlerLastName
+from (
+	select distinct Bowlers.BowlerID, Bowlers.BowlerFirstName, Bowlers.BowlerLastName,
+	Bowler_Scores.RawScore, Bowler_Scores.WonGame
+	from Tournaments
+	inner join Tourney_Matches
+	on Tournaments.TourneyID = Tourney_Matches.TourneyID
+	inner join Match_Games
+	on Match_Games.MatchID = Tourney_Matches.MatchID
+	inner join Bowler_Scores
+	on Match_Games.MatchID = Bowler_Scores.MatchID and Match_Games.GameNumber = Bowler_Scores.GameNumber -- [!code ++] 注意这里主键是两个字段！
+	inner join Bowlers
+	on Bowler_Scores.BowlerID = Bowlers.BowlerID
+	where Tournaments.TourneyLocation = 'Thunderbird Lanes' and Bowler_Scores.RawScore > 170
+) as A
+inner join (
+	select distinct Bowlers.BowlerID, Bowlers.BowlerFirstName, Bowlers.BowlerLastName,
+	Bowler_Scores.RawScore, Bowler_Scores.WonGame
+	from Tournaments
+	inner join Tourney_Matches
+	on Tournaments.TourneyID = Tourney_Matches.TourneyID
+	inner join Match_Games
+	on Match_Games.MatchID = Tourney_Matches.MatchID
+	inner join Bowler_Scores
+	on Match_Games.MatchID = Bowler_Scores.MatchID and Match_Games.GameNumber = Bowler_Scores.GameNumber -- [!code ++] 注意这里主键是两个字段！
+	inner join Bowlers
+	on Bowler_Scores.BowlerID = Bowlers.BowlerID
+	where Tournaments.TourneyLocation = 'Bolero Lanes' and Bowler_Scores.RawScore > 170
+) as B
+	on A.BowlerID = B.BowlerID;
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#8.4.3 **`思路2`** 使用内连接，找出在保龄球馆 Thunderbird Lanes 和 Bolero Lanes 比赛时，原始得分都不低于 170 的投球手 </summary>
+
+从 DrawSQL ERD 关系图上看，我们从右侧的 Bowler 球员来入手，inner join 球员分数表 Bowler_Scores 表，直接就能拿到所有球员的分数信息，接下来只要找到比赛对应的场地即可。我们发现 Bowler_Scores 的比赛 ID MatchID 直接就可以和联赛场次 Tourney_Match 关联起来，直接跳过联赛场次回合表 Match_Games，就可以省去一张表
+
+> [!CAUTION]
+> 如果查询出错，可能需要设置 `set GLOBAL max_allowed_packet = 1024 * 1024 * 1`
+
+```sql
+select distinct A.BowlerID, A.BowlerFirstName, A.BowlerLastName
+from (
+	select distinct Bowlers.BowlerID, Bowlers.BowlerFirstName, Bowlers.BowlerLastName,
+	Bowler_Scores.RawScore, Bowler_Scores.WonGame
+	from Bowlers
+	inner join Bowler_Scores
+	on Bowler_Scores.BowlerID = Bowlers.BowlerID
+	inner join Tourney_Matches
+	on Bowler_Scores.MatchID = Tourney_Matches.MatchID
+	inner join Tournaments
+	on Tournaments.TourneyID = Tourney_Matches.TourneyID
+	where Tournaments.TourneyLocation = 'Thunderbird Lanes' and Bowler_Scores.RawScore > 170
+) as A
+inner join (
+	select distinct Bowlers.BowlerID, Bowlers.BowlerFirstName, Bowlers.BowlerLastName,
+	Bowler_Scores.RawScore, Bowler_Scores.WonGame
+	from Bowlers
+	inner join Bowler_Scores
+	on Bowler_Scores.BowlerID = Bowlers.BowlerID
+	inner join Tourney_Matches
+	on Bowler_Scores.MatchID = Tourney_Matches.MatchID
+	inner join Tournaments
+	on Tournaments.TourneyID = Tourney_Matches.TourneyID
+	where Tournaments.TourneyLocation = 'Bolero Lanes' and Bowler_Scores.RawScore > 170
+) as B
+	on A.BowlerID = B.BowlerID;
+```
+
+书中示例，返回 11 条结果：
+
+```sql
+SELECT
+	BowlerTbird.BowlerFullName
+FROM
+	(
+	SELECT DISTINCT
+		Bowlers.BowlerID,
+		concat( Bowlers.BowlerLastName, ', ', Bowlers.BowlerFirstName ) AS BowlerFullName
+	FROM
+		((
+				Bowlers
+				INNER JOIN Bowler_Scores ON Bowlers.BowlerID = Bowler_Scores.BowlerID
+				)
+			INNER JOIN Tourney_Matches ON Tourney_Matches.MatchID = Bowler_Scores.MatchID
+		)
+		INNER JOIN Tournaments ON Tournaments.TourneyID = Tourney_Matches.TourneyID
+	WHERE
+		Tournaments.TourneyLocation = 'Thunderbird Lanes'
+		AND Bowler_Scores.RawScore >= 170
+	) AS BowlerTbird
+	INNER JOIN (
+	SELECT DISTINCT
+		Bowlers.BowlerID,
+		concat( Bowlers.BowlerLastName, ', ', Bowlers.BowlerFirstName ) AS BowlerFullName
+	FROM
+		((
+				Bowlers
+				INNER JOIN Bowler_Scores ON Bowlers.BowlerID = Bowler_Scores.BowlerID
+				)
+			INNER JOIN Tourney_Matches ON Tourney_Matches.MatchID = Bowler_Scores.MatchID
+		)
+		INNER JOIN Tournaments ON Tournaments.TourneyID = Tourney_Matches.TourneyID
+	WHERE
+		Tournaments.TourneyLocation = 'Bolero Lanes'
+	AND Bowler_Scores.RawScore >= 170
+	) AS BowlerBolero ON BowlerTbird.BowlerID = BowlerBolero.BowlerID
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#8.6 使用内连接，列出所有保龄球队及其队员</summary>
+
+返回 32 条记录：
+
+```sql
+select TeamName, Bowlers.BowlerFirstName, Bowlers.BowlerLastName
+from Teams
+inner join Bowlers
+on Teams.TeamID = Bowlers.TeamID;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#8.6 使用内连接，显示投球手及其参加的比赛场次和得分</summary>
+
+返回 1344 条记录：
+
+```sql
+select
+Bowlers.BowlerFirstName,
+Bowlers.BowlerLastName,
+Tourney_Matches.Lanes,
+Tourney_Matches.TourneyID,
+Bowler_Scores.RawScore
+from Bowlers
+inner join Bowler_Scores
+on Bowlers.BowlerID = Bowler_Scores.BowlerID
+inner join Tourney_Matches
+on Bowler_Scores.MatchID = Tourney_Matches.MatchID
+
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#8.6 使用内连接，找出居住地邮政编码相同的投球手</summary>
+
+同一张表连接，注意排除主键相同的行。
+
+返回 92 条记录：
+
+```sql
+select
+CONCAT(A.BowlerFirstName,',',A.BowlerLastName) as BowlerName_A,
+CONCAT(B.BowlerFirstName,',',B.BowlerLastName) as BowlerName_B,
+A.BowlerZip
+from Bowlers AS A
+inner join Bowlers as B
+on A.BowlerZip = B.BowlerZip
+and A.BowlerID != B.BowlerID;
 ```
 
 </details>
