@@ -14,7 +14,7 @@ SchoolSchedulingExample 是 `SQL 查询：从入门到实践（第４版）` 提
 `view.sql` 是书中提供的参考答案，以创建视图的形式保存在 SQL 文件中，可以参考，意义不大，也用不上。
 
 > [!CAUTION]
-> DrawSQL 免费版仅支持 15 张表以下，所以并未提供 DrawSQL ERD 图和 SQL 文件。
+> DrawSQL 疑似不支持 ADD CONSTRINAT 语句，可以删除该关键词，直接使用 Foreign Key 关键词。或者直接使用本文档同目录下[schema-for-drawsql-part-1.sql](./schema-for-drawsql-part-1.sql) 文件，它包含了主要的 15 张表，另外 [schema-for-drawsql-part-2.sql](./schema-for-drawsql-part-2.sql) 包含了其它的 5 张表，可以忽略，也可以使用两个画板来展示。
 
 ```sh
 mysql -uroot -p12345 < "schema.SQL"
@@ -260,7 +260,6 @@ where Faculty_Subjects.StaffID is NULL;
 书中答案: CH09_Subjects_No_Faculty
 
 </details>
-</details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#9.7 使用外连接，列出当前未注册任何课程的学生</summary>
 
@@ -283,6 +282,7 @@ where A.StudentID is NULl;
 书中答案: CH09_Students_Not_Currently_Enrolled
 
 </details>
+
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#9.7 使用外连接，显示所有的教员及其讲授的课程</summary>
 
