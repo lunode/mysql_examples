@@ -29,8 +29,9 @@ docker exec -it container_name mysql -uroot -p12345 -t < /path/to/data.SQL
 ## ERD 关系图
 
 ![Navicate Export ERD](./imgs/image.png)
+![DrawSQL Export ERD](./imgs/drawsql.png)
 
-DrawSQL 免费版不支持 > 15 张表。
+左边重点大图访问 [Part-1](https://drawsql.app/teams/sql-404/diagrams/schoolscheduling-part-1)，右边小图无关紧要，可以访问 [Part-2](https://drawsql.app/teams/sql-404/diagrams/schoolscheduling-part-2)。
 
 ## 表字段注释
 
