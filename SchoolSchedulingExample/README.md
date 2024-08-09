@@ -9,7 +9,9 @@ SchoolSchedulingExample 是 `SQL 查询：从入门到实践（第４版）` 提
 
 ## 导入数据
 
-使用 `schema.SQL` 文件导入建表语句，使用 `data.SQL` 导入数据，使用 `views.SQL` 导入视图等文件，对于 `views.SQL` 创建视图文件，也可以暂时不导入。
+使用 `schema.SQL` 文件导入建表语句，使用 `data.SQL` 导入数据。
+
+`view.sql` 是书中提供的参考答案，以创建视图的形式保存在 SQL 文件中，可以参考，意义不大，也用不上。
 
 > [!CAUTION]
 > DrawSQL 免费版仅支持 15 张表以下，所以并未提供 DrawSQL ERD 图和 SQL 文件。
