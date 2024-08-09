@@ -39,7 +39,11 @@ DrawSQL 免费版不支持 > 15 张表。
 - `Subjects` 课程科目表，如数学，物理。
 - `Classes` 课程安排表
   - `Credits` 学分，学完课程可以获得学分
-- `Faculty` 教职工表
+- ## `Staff` 教职工信息表
+- `Faculty` 教职工任职信息表
+  - `Title` 任职信息，如教授，副教授，教授助手
+  - `Status` 任职状态，离职还是在职
+  - `Tenured` 是否终身任教
 - `Faculty_Subjects` 教职工-课程科目表，教职工教习的科目
   - `ProficiencyRating`
 
@@ -113,20 +117,24 @@ where Student_Class_Status.ClassStatusDescription = 'Enrolled';
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary markdown="span">#8.6 使用内连接，列出教工及其讲授的科目</summary>
+<summary markdown="span">#8.6 使用内连接，列出教职工及其讲授的科目</summary>
+
+教职工信息表 Staff 和教职工任职信息表 Facutly 是 1 对 1，任职信息表 Faculty 和学科科目 Subjects 是多读多关系，有一个中间表 Facutly_Subjects。简化下来就是教职工信息表 Staff 和学科是 1 对多的关系，就是 Staff 和 Faculty_Subjects 表。
+
+将两张表内联就可以得到教职工和任教科目的练习，此时结果集和 Subjects 表的关系是多对一，适用 inner join，然后内连接匹配 ID 后就得到教学科目信息了。
 
 返回 110 条记录：
 
 ```sql
-select
-Faculty.StaffID,
-Faculty.title,
-Subjects.SubjectName
-from Faculty
+select Staff.StfFirstName,Staff.StfLastname, Subjects.SubjectName
+from Staff
+-- 连不连 Faculty 可有可无，逻辑和实际查询都不影响结果
+-- inner join Faculty -- [!code --]
+-- on Faculty.StaffID = Staff.StaffID  -- [!code --]
 inner join Faculty_Subjects
-on Faculty.StaffID = Faculty_Subjects.StaffID
+on Staff.StaffID = Faculty_Subjects.StaffID
 inner join Subjects
-on Faculty_Subjects.SubjectID = Subjects.SubjectID;
+on Subjects.SubjectID = Faculty_Subjects.SubjectID;
 ```
 
 </details>
@@ -147,6 +155,65 @@ on Classes.ClassID = Student_Schedules.ClassID
 inner join Subjects
 on Classes.SubjectID = Subjects.SubjectID
 where Subjects.SubjectName = 'Computer Art' and Student_Schedules.Grade > 85;
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.5 使用外连接，列出没有讲授任何课程的教职工</summary>
+
+有没有课程不是看教职工教授的科目，而是看教室安排。
+
+返回 5 条记录：
+
+```sql
+select Staff.StaffID, Staff.StfFirstName, Staff.StfLastname
+from Staff
+left join
+Faculty_Classes
+on Faculty_Classes.StaffID = Staff.StaffID
+where Faculty_Classes.ClassID is NULL;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.5 使用外连接，显示从未退过课的学生</summary>
+
+先分许需求，又是经典的多对多模型，Students 和 Classes 多对多，并且用了一张中间表 Students_Schedules。由于多表连续 left join 只能在 1 对多的情况下不会出现意外情况，所以 `Students left join Students_Schedules` 之后无法继续 `left join Clesses`。于是将多对一的 `Students_Schedules` 和 `Classes` 先内连接起来，`Students` 和它们的结果集 还是 1 对多的关系，可以 left jion。
+
+返回 5 条记录：
+
+```sql
+select StudFirstName,StudLastName
+from Students
+left join (
+	select Student_Schedules.StudentID, Student_Schedules.ClassID
+	from Student_Schedules
+	inner join Student_Class_Status
+	on Student_Schedules.ClassStatus = Student_Class_Status.ClassStatus
+	where Student_Class_Status.ClassStatusDescription = 'Withdrew'
+) as A
+on Students.StudentID = A.StudentID
+where A.ClassID is NULL;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.5 使用外连接，列出所有的科目类别及其所有课程</summary>
+
+需求分析，简单的 1 对多，1 对多关系，完全可以多表左外连接 left join。
+
+返回 5 条记录：
+
+```sql
+select
+CategoryDescription, Subjects.SubjectName, ClassRoomID,
+Classes.StartDate, Classes.StartTime, Classes.Duration
+from  Categories
+left join Subjects
+on Categories.CategoryID = Subjects.CategoryID
+left join Classes
+on Subjects.SubjectID = Classes.SubjectID
 ```
 
 </details>

@@ -687,3 +687,74 @@ ORDER BY RecipeTitle, RecipeSeqNo
 ```
 
 </details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.6 使用外连接，列出未在任何菜品中使用的食材</summary>
+
+返回 20 条记录：
+
+```sql
+select Ingredients.IngredientName
+from Ingredients
+left join (
+	Recipes
+	inner join Recipe_Ingredients
+	on Recipes.RecipeID = Recipe_Ingredients.RecipeID
+)
+on Ingredients.IngredientID = Recipe_Ingredients.IngredientID
+where Recipe_Ingredients.RecipeId is NULL;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.6 使用全外连接，从 Recipes 数据库中获取所有的菜品类型、所有的菜品名以及各个菜品的食材序号、食材数量和食材度量单位，还有所有的食材名，并依次按菜品类型描述降序、菜品名和食材序列号升序排列</summary>
+
+需求分析，主要保留所有菜品类型，也就是 Recipe_Classes 全表数据，所有的菜品名，也就是 Recipes 全表数据，Recipe_Classes 和 Recipes 是 1 对多的关系，所以 inner join 和 left/right join 都不符合，只有全外连接 full outer join 适用。
+
+<img src="./imgs/demo9-5.png"/>
+
+观察图中 1 部分，从左到右整个链条都是 1 对多，可以看成一个整体。
+
+观察图中 2 部分，两张表是 1 对多关系，可以看成一个整体。
+
+这两个整体，也就是 2 部分 和 1 部分是 1 对多关系，观察 Ingredients 和 Recipe_Ingredients。
+
+所以首先处理第 1 部分，Recipe_Classes 和 Recipes 全外连接，保留两张表的数据，将这个结果集左外连接 Recipe_Ingredients，保留左边结果集的 NULL 行。
+
+Measurements 和 第 1 部分是 1 对多，实际上反过来，第 1 部分和 Measurements 是 1 对 1 的关系，可以无关紧要的内连接一下。
+
+第二部分由于需求中没有使用到食材的分类，所以两张表不用外连接，因为没说要全部的食材和食材分类，所以不需要全外连接，以至把所有食材和所有食材分类都保存。
+
+然后第 2 部分和 第 1 部分是 1 对多关系，为了保全两张表的全部信息，所以要全外连接。
+
+返回 109 条记录，由于 MySQL 不支持全外连接，所以需要自己转换 SQL：
+
+```sql
+SELECT
+	Recipe_Classes.RecipeClassDescription,
+	Recipes.RecipeTitle,
+	Ingredients.IngredientName,
+	Recipe_Ingredients.RecipeSeqNo,
+	Recipe_Ingredients.Amount,
+	Measurements.MeasurementDescription
+FROM
+	(
+		(
+			(
+				Recipe_Classes
+				FULL OUTER JOIN Recipes ON Recipe_Classes.RecipeClassID = Recipes.RecipeClassID
+			)
+			LEFT OUTER JOIN Recipe_Ingredients ON Recipes.RecipeID = Recipe_Ingredients.RecipeID
+		)
+		INNER JOIN Measurements ON Measurements.MeasureAmountID = Recipe_Ingredients.MeasureAmountID
+	)
+	FULL OUTER JOIN Ingredients
+	ON Ingredients.IngredientID = Recipe_Ingredients.IngredientID
+	and Recipe_Classes.RecipeClassID = Recipes.RecipeClassID
+ORDER BY
+	RecipeClassDescription DESC,
+	RecipeTitle,
+	RecipeSeqNo
+```
+
+</details>

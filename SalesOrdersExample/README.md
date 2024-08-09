@@ -301,3 +301,93 @@ on Customers.CustCity = Employees.EmpCity;
 ```
 
 </details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.5 使用左外连接，查询哪些商品从未被订购过</summary>
+
+返回 2 条记录：
+
+```sql
+SELECT
+Products.ProductNumber,
+Products.ProductName,
+Order_Details.OrderNumber
+FROM Products
+LEFT OUTER JOIN Order_Details
+ON Products.ProductNumber =
+Order_Details.ProductNumber
+WHERE Order_Details.OrderNumber IS NULL;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.5 使用左外连接，查询所有顾客及其自行车订单</summary>
+
+首先上来就是万能 left join 大法，手写 **`错误`** 示例：
+
+```sql
+-- 这是错误示例
+select *
+from Customers
+left join Orders
+on Customers.CustomerID = Orders.CustomerID
+left join Order_Details
+on Orders.OrderNumber = Order_Details.OrderNumber
+left join Products
+on Order_Details.ProductNumber = Products.ProductNumber
+left join Categories
+on Products.CategoryID = Categories.CategoryID
+where Categories.CategoryDescription = 'Bikes';
+```
+
+尽管使用左连接，想留住 Customers 表中没有下单，甚至没有下单 Bikes 的用户，但到了最后，一条 **`where`** 筛选就将没有买 Bikes 的客户过滤掉，更别说没有下单任何产品的用户。
+
+所以便想到了改进，将 where 条件加入 left join 的 on 条件中，并且对于订单 ID，也就是没有下过单的用户筛选保留，
+
+```sql
+-- 这是错误示例
+select *
+from Customers
+left join Orders
+  on Customers.CustomerID = Orders.CustomerID
+left join Order_Details
+  on Orders.OrderNumber = Order_Details.OrderNumber
+left join Products
+  on Order_Details.ProductNumber = Products.ProductNumber
+left join Categories
+  on Products.CategoryID = Categories.CategoryID
+  and  Categories.CategoryDescription = 'Bikes';
+```
+
+不管怎么加，怎么修改，也无法正确，查询。
+
+对需求正确分析，应该将用户表 Customers 和下过自行车的订单集进行左外连接，从而保留没有下单自行车的用户。
+
+书中示例，返回 914 条记录：
+
+```sql
+select
+Customers.CustFirstName,
+Customers.CustLastName,
+A.OrderNumber,
+A.ProductNumber,
+A.OrderDate,
+A.QuantityOrdered,
+A.QuotedPrice
+from Customers
+left join (
+	select Orders.CustomerID, Orders.OrderDate, Orders.OrderNumber,
+	Products.ProductNumber, Order_Details.QuantityOrdered, Order_Details.QuotedPrice
+	from Orders
+	inner join Order_Details
+		on Orders.OrderNumber = Order_Details.OrderNumber
+	inner join Products
+		on Order_Details.ProductNumber = Products.ProductNumber
+	inner join Categories
+		on Products.CategoryID = Categories.CategoryID
+	where Categories.CategoryDescription = 'Bikes'
+) as A
+on Customers.CustomerID = A.CustomerID;
+```
+
+</details>

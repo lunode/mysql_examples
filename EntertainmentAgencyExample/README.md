@@ -204,3 +204,52 @@ on Entertainers.EntZipCode = Agents.AgtZipCode;
 ```
 
 </details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.5 使用外连接，列出从未签约的组合</summary>
+
+返回 1 条记录：
+
+```sql
+select Entertainers.EntertainerID,Entertainers.EntStageName
+from Entertainers
+left join Engagements
+on Entertainers.EntertainerID = Engagements.EntertainerID
+where Engagements.EntertainerID is NULL;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.5 使用外连接，列出所有的音乐风格以及喜欢各种风格的顾客</summary>
+
+left join 只有在 1 对多，1 对多的情况下，才不会出现意外情况。而本需求可以查看 DrawSQL 的 ERD 图可以看出，Musical_Styles 与 Musical_Preferences 是 1 对多，而 Musical_Preferences 和 Customers 是多对 1，不适合连续 left join，也就是不适用 `Musical_Styles left join Musical_Preferences left join Customers` 的情况。
+
+但由于 Customer 和 Musical_Preferences 是 1 对多的情况，这两者表适合内连接，所以先将这两张表连接，作为新的结果集，然后 Musical_Styles 就可以和这个结果集进行左连接了。
+
+返回 41 条记录：
+
+```sql
+select
+Musical_Styles.StyleID, Musical_Styles.StyleName,
+Customers.CustomerID, Customers.CustFirstName, Customers.CustLastName
+from Musical_Styles
+left join (
+	Musical_Preferences
+	INNER JOIN Customers
+	on Musical_Preferences.CustomerID = Customers.CustomerID
+)
+on Musical_Preferences.StyleID = Musical_Styles.StyleID;
+```
+
+知晓逻辑后就可以使用右外连接来改写上述 SQL，返回 41 条记录：
+
+```sql
+select Musical_Styles.StyleID, Musical_Styles.StyleName,
+Customers.CustomerID, Customers.CustFirstName, CustLastName
+from Customers
+inner join Musical_Preferences
+on Customers.CustomerID = Musical_Preferences.CustomerID
+right join Musical_Styles
+on Musical_Styles.StyleID = Musical_Preferences.StyleID
+```
+
+</details>

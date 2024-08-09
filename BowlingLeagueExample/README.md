@@ -323,3 +323,50 @@ and A.BowlerID != B.BowlerID;
 ```
 
 </details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.5 使用外连接，列出还未举行的联赛</summary>
+
+如果比赛场次表 Tourney_Matches 还没有联赛 Tournaments 的场次 Matches，则说明联赛还未举行。
+
+这个说法其实不太正确，但书中是这样理解的。
+
+返回 6 条记录：
+
+```sql
+select Tournaments.*
+from Tournaments
+left join Tourney_Matches
+on Tournaments.TourneyID = Tourney_Matches.TourneyID
+where Tourney_Matches.MatchID is NULL;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.5 使用外连接，列出所有的投球手及其得分超过 180 的比赛场次</summary>
+
+需求分析，本次查询一共涉及 5 张表，其中 `Tournaments->Tourney_Matches->Match_Games` 都是 1 对多的关系，可以适用内连接和左外连接，而 `Match_Games` 和 `Bowlers` 是多对多关系 `Bowler_Scores` 是他们的中间表，于是 `Tournaments->Tourney_Matches->Match_Games->Bowler_Scores` 都是一对多的关系，只要将这 4 张表内连接起来，Bowlers 和 4 张表的结果集还是 1 对多关系，适用左外连接。
+
+返回 106 条记录：
+
+```sql
+select
+Bowlers.BowlerID, Bowlers.BowlerFirstName, Bowlers.BowlerLastName,
+BowlerScore.RawScore, BowlerScore.TourneyDate, BowlerScore.TourneyLocation
+from Bowlers
+left join (
+	select Bowler_Scores.BowlerID, Bowler_Scores.RawScore,
+	Tournaments.TourneyDate, Tournaments.TourneyLocation
+	from Tournaments
+	inner join Tourney_Matches
+	on Tournaments.TourneyID = Tourney_Matches.TourneyID
+	inner join Match_Games
+	on Tourney_Matches.MatchID = Match_Games.MatchID
+	inner join Bowler_Scores
+	on Match_Games.MatchID = Bowler_Scores.MatchID
+	and Match_Games.GameNumber = Bowler_Scores.GameNumber
+	where Bowler_Scores.RawScore > 180
+) as BowlerScore
+on BowlerScore.BowlerID = Bowlers.BowlerID;
+```
+
+</details>
