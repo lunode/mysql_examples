@@ -253,3 +253,45 @@ on Musical_Styles.StyleID = Musical_Preferences.StyleID
 ```
 
 </details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，显示没有签订任何演出合约的经纪人</summary>
+
+返回 1 条记录：
+
+```sql
+select Agents.AgentID, Agents.AgtFirstName, Agents.AgtLastName
+from Agents
+left join Engagements
+on Engagements.AgentID = Agents.AgentID
+where Engagements.AgentID is NULL;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，列出没有与任何演唱组合签约的顾客</summary>
+
+返回 2 条记录：
+
+```sql
+select Customers.CustomerID, Customers.CustFirstName, Customers.CustLastName
+from Customers
+left join Engagements
+on Customers.CustomerID = Engagements.CustomerID
+where Engagements.CustomerID is NULL;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，列出所有的演唱组合及其签订的演出合约</summary>
+
+返回 2 条记录：
+
+```sql
+select Entertainers.EntStageName, Engagements.StartDate, EngagementNumber, Engagements.CustomerID
+from Entertainers
+left JOIN Engagements
+on Entertainers.EntertainerID = Engagements.EntertainerID;
+```
+
+</details>

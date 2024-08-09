@@ -391,3 +391,73 @@ on Customers.CustomerID = A.CustomerID;
 ```
 
 </details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，列出从未订购过头盔的顾客</summary>
+
+返回 3 条记录：
+
+```sql
+select Customers.CustFirstName, Customers.CustLastName
+from Customers
+left join (
+	select Orders.CustomerID
+	from Orders
+	inner join Order_Details
+	on Orders.OrderNumber = Order_Details.OrderNumber
+	inner join Products
+	on Order_Details.ProductNumber = Products.ProductNumber
+	where Products.ProductName like '%Helmet'
+) as HelmetOrder
+on Customers.CustomerID = HelmetOrder.CustomerID
+where HelmetOrder.CustomerID is NUll;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，显示没有任何销售代表(员工)的邮政编码与其相同的顾客</summary>
+
+返回 18 条记录：
+
+```sql
+select Customers.CustomerID, Customers.CustFirstName, Customers.CustLastName
+from Customers
+left join Employees
+on Customers.CustZipCode = Employees.EmpZipCode
+where Employees.EmpZipCode is NULL;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，列出所有的商品及包含它的订单的日期</summary>
+
+查看错误示例：
+
+```sql
+select  ProductName, ood.OrderDate
+from Products
+left join (
+	select distinct Orders.CustomerID, Order_Details.ProductNumber, Orders.OrderDate
+	from Orders
+	inner join Order_Details
+	on Orders.OrderNumber = Order_Details.OrderNumber
+) as ood
+on Products.ProductNumber = ood.ProductNumber;
+```
+
+返回 2681 条记录：
+
+```sql
+select  ProductName, ood.OrderDate
+from Products
+left join (
+	select distinct Order_Details.ProductNumber, Orders.OrderDate
+	from Orders
+	inner join Order_Details
+	on Orders.OrderNumber = Order_Details.OrderNumber
+) as ood
+on Products.ProductNumber = ood.ProductNumber;
+
+```
+
+</details>

@@ -370,3 +370,105 @@ on BowlerScore.BowlerID = Bowlers.BowlerID;
 ```
 
 </details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，显示没有比赛数据的场次</summary>
+
+返回 1 行：
+
+```sql
+select *
+from Tourney_Matches
+left join Match_Games
+ON Tourney_Matches.MatchID = Match_Games.MatchID
+where Match_Games.MatchID is NULL;
+```
+
+书中示例，返回 1 行，参考 CH09_Matches_Not_Played_Yet：
+
+```sql
+SELECT
+	Tourney_Matches.MatchID,
+	Tourney_Matches.TourneyID,
+	Teams.TeamName AS OddLaneTeam,
+	Teams_1.TeamName AS EvenLaneTeam
+FROM
+	Teams Teams_1
+	INNER JOIN (
+		Teams
+		INNER JOIN (
+			Tourney_Matches
+			LEFT OUTER JOIN Match_Games ON Tourney_Matches.MatchID = Match_Games.MatchID
+		) ON Teams.TeamID = Tourney_Matches.OddLaneTeamID
+	) ON Teams_1.TeamID = Tourney_Matches.EvenLaneTeamID
+WHERE Match_Games.MatchID IS NULL;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，显示所有的联赛及其已举行的比赛场次</summary>
+
+**`错误示例`**，返回 175 行：
+
+```sql
+-- 这是错误示例
+select *
+from Tournaments
+left join Tourney_Matches
+on Tournaments.TourneyID = Tourney_Matches.TourneyID
+left join Match_Games
+on Match_Games.MatchID = Tourney_Matches.MatchID;
+```
+
+之所以会错误，是因为联赛 Tournaments 有了比赛 id，也就是 Tourney_Matches 的记录之后，并没有开始比赛，也就是 Match_Games 表里还没有关联 MatchID 的记录。
+
+所以 Tourney_Matches 有一个 TourneyID 为 57 的记录，并没有场次记录，所以它的比赛还没有开始，这和需求不符合，可以将 Tourney_Matches 和 Match_Games 的数据进行内连接，返回没有 NULL 也就是没有还未开始比赛场次的比赛。
+
+正确示例，返回 174 行：
+
+```sql
+select
+Tournaments.TourneyID,
+	Tournaments.TourneyDate,
+	Tournaments.TourneyLocation,
+	Tourney_Matches.MatchID,
+	Match_Games.GameNumber
+from Tournaments
+left join (
+	Tourney_Matches
+	inner join Match_Games
+	on Match_Games.MatchID = Tourney_Matches.MatchID
+)
+on Tournaments.TourneyID = Tourney_Matches.TourneyID
+```
+
+书中示例，返回 174 行，参考 CH09_Matches_Not_Played_Yet：
+
+```sql
+SELECT
+	Tournaments.TourneyID,
+	Tournaments.TourneyDate,
+	Tournaments.TourneyLocation,
+	TM.MatchID,
+	TM.GameNumber,
+	TM.Winner
+FROM Tournaments
+LEFT OUTER JOIN (
+	SELECT
+		Tourney_Matches.TourneyID,
+		Tourney_Matches.MatchID,
+		Match_Games.GameNumber,
+		Teams.TeamName AS Winner
+	FROM Tourney_Matches
+	INNER JOIN (
+		Teams
+		INNER JOIN Match_Games
+		ON Teams.TeamID = Match_Games.WinningTeamID
+	)
+	ON Tourney_Matches.MatchID = Match_Games.MatchID
+) AS TM
+ON Tournaments.TourneyID = TM.TourneyID
+ORDER BY Tournaments.TourneyID;
+```
+
+</details>

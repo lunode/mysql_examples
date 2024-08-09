@@ -689,7 +689,7 @@ ORDER BY RecipeTitle, RecipeSeqNo
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary markdown="span">#9.6 使用外连接，列出未在任何菜品中使用的食材</summary>
+<summary markdown="span">#9.7 使用外连接，列出未在任何菜品中使用的食材</summary>
 
 返回 20 条记录：
 
@@ -707,7 +707,7 @@ where Recipe_Ingredients.RecipeId is NULL;
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary markdown="span">#9.6 使用全外连接，从 Recipes 数据库中获取所有的菜品类型、所有的菜品名以及各个菜品的食材序号、食材数量和食材度量单位，还有所有的食材名，并依次按菜品类型描述降序、菜品名和食材序列号升序排列</summary>
+<summary markdown="span">#9.7 使用全外连接，从 Recipes 数据库中获取所有的菜品类型、所有的菜品名以及各个菜品的食材序号、食材数量和食材度量单位，还有所有的食材名，并依次按菜品类型描述降序、菜品名和食材序列号升序排列</summary>
 
 需求分析，主要保留所有菜品类型，也就是 Recipe_Classes 全表数据，所有的菜品名，也就是 Recipes 全表数据，Recipe_Classes 和 Recipes 是 1 对多的关系，所以 inner join 和 left/right join 都不符合，只有全外连接 full outer join 适用。
 
@@ -756,5 +756,71 @@ ORDER BY
 	RecipeTitle,
 	RecipeSeqNo
 ```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，显示不包含任何菜品的菜品类型</summary>
+
+返回 1 条记录：
+
+```sql
+select Recipe_Classes.RecipeClassID, Recipe_Classes.RecipeClassDescription
+from Recipe_Classes
+left join Recipes
+on Recipes.RecipeClassID = Recipe_Classes.RecipeClassID
+where Recipes.RecipeClassID is NULL;
+```
+
+书中示例返回 1 条记录，参考 CH09_Recipe_Classes_No_Recipes
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，显示所有的食材及其被用来制作的菜品</summary>
+
+返回 108 条记录：
+
+```sql
+select Ingredients.IngredientName, Recipes.RecipeTitle
+from Ingredients
+left join (
+	Recipes
+	inner join Recipe_Ingredients
+	on Recipes.RecipeID = Recipe_Ingredients.RecipeID
+)
+on Ingredients.IngredientID = Recipe_Ingredients.IngredientID;
+```
+
+书中示例返回 108 条记录，参考 CH09_All_Ingredients_Any_Recipes
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，列出菜品类型 Salad(沙拉)、Soup(汤菜)和 Main course(主菜)及其包含的菜品</summary>
+
+返回 9 条记录：
+
+```sql
+select * from Recipe_Classes
+left join Recipes
+on Recipes.RecipeClassID = Recipe_Classes.RecipeClassID
+where RecipeClassDescription in ('Soup','Salad','Main course')
+
+```
+
+书中示例返回 9 条记录，参考 CH09_Salad_Soup_Main_Courses
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，显示所有的菜品类型及其包含的菜品</summary>
+
+返回 16 条记录：
+
+```sql
+select * from Recipe_Classes
+left join Recipes
+on Recipes.RecipeClassID = Recipe_Classes.RecipeClassID
+```
+
+书中示例返回 16 条记录，参考 CH09_All_RecipeClasses_And_Matching_Recipes
 
 </details>

@@ -217,3 +217,87 @@ on Subjects.SubjectID = Classes.SubjectID
 ```
 
 </details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，列出没有学生注册的课程</summary>
+
+返回 118 条记录：
+
+```sql
+select Classes.ClassID, SubjectName
+from Subjects
+inner join Classes
+on Classes.SubjectID = Subjects.SubjectID
+left JOIN(
+	select Student_Schedules.ClassID
+	from Student_Schedules
+	inner join Student_Class_Status
+	on Student_Schedules.ClassStatus = Student_Class_Status.ClassStatus
+	where Student_Class_Status.ClassStatusDescription = 'Enrolled'
+) AS ClassStatus
+on Classes.ClassID = ClassStatus.ClassID
+where ClassStatus.ClassID is NULL;
+```
+
+书中答案: CH09_Classes_No_Students_Enrolled
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，列出没有学生注册的课程</summary>
+
+返回 1 条记录：
+
+```sql
+select Subjects.SubjectID, Subjects.SubjectName
+from Subjects
+left join Faculty_Subjects
+on Subjects.SubjectID = Faculty_Subjects.SubjectID
+where Faculty_Subjects.StaffID is NULL;
+```
+
+书中答案: CH09_Subjects_No_Faculty
+
+</details>
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，列出当前未注册任何课程的学生</summary>
+
+返回 2 行条记录：
+
+```sql
+select Students.StudentID, Students.StudFirstName, Students.StudLastName
+from Students
+left join (
+	select Student_Schedules.StudentID
+	from Student_Schedules
+	inner join Student_Class_Status
+	on Student_Schedules.ClassStatus = Student_Class_Status.ClassStatus
+	where Student_Class_Status.ClassStatusDescription = 'Enrolled'
+) as A
+on Students.StudentID = A.StudentID
+where A.StudentID is NULl;
+```
+
+书中答案: CH09_Students_Not_Currently_Enrolled
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#9.7 使用外连接，显示所有的教员及其讲授的课程</summary>
+
+返回 135 行条记录：
+
+```sql
+select Staff.StaffID, Staff.StfFirstName, Staff.StfLastname
+from Staff
+left join (
+	Subjects
+	inner join Classes
+	on Subjects.SubjectID = Classes.SubjectID
+	inner join Faculty_Classes
+	on Classes.ClassID = Faculty_Classes.ClassID
+)
+on Staff.StaffID = Faculty_Classes.StaffID
+```
+
+书中答案: CH09_All_Faculty_And_Any_Classes
+
+</details>
