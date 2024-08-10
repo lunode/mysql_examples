@@ -67,6 +67,8 @@ on Classes.SubjectID = Subjects.SubjectID
 where Classes.WednesdaySchedule = 1;
 ```
 
+书中示例同上。
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.4.3 使用内连接，列出名字相同的学生和老师</summary>
@@ -81,6 +83,8 @@ inner join Staff
 on Students.StudFirstName = Staff.StfFirstName
 ```
 
+书中示例同上。
+
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -94,6 +98,8 @@ from Buildings
 inner join Class_Rooms
 on Class_Rooms.BuildingCode = Buildings.BuildingCode;
 ```
+
+书中示例同上，可参考 view.sql 文件中的 CH08_Buildings_Classrooms
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -118,6 +124,32 @@ on Student_Class_Status.ClassStatus = Student_Schedules.ClassStatus
 where Student_Class_Status.ClassStatusDescription = 'Enrolled';
 ```
 
+书中示例返回 50 行，可参考 view.sql 文件中的 CH08_Student_Enrollments:
+
+```sql
+SELECT
+	Concat( Students.StudLastName, ', ', Students.StudFirstName ) AS StudentFullName,
+	Classes.ClassID,
+	Subjects.SubjectName
+FROM
+	(
+		(
+			(
+				Students
+				INNER JOIN Student_Schedules
+				ON Students.StudentID = Student_Schedules.StudentID
+			)
+		)
+		INNER JOIN Student_Class_Status
+		ON Student_Schedules.ClassStatus = Student_Class_Status.ClassStatus
+	)
+INNER JOIN Classes
+ON Classes.ClassID = Student_Schedules.ClassID
+INNER JOIN Subjects
+ON Subjects.SubjectID = Classes.SubjectID
+WHERE Student_Class_Status.ClassStatusDescription = 'Enrolled';
+```
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.6 使用内连接，列出教职工及其讲授的科目</summary>
@@ -140,6 +172,22 @@ inner join Subjects
 on Subjects.SubjectID = Faculty_Subjects.SubjectID;
 ```
 
+书中示例返回 110 条记录，可参考 view.sql 文件中的 CH08_Staff_Subjects:
+
+```sql
+SELECT
+	Concat( Staff.StfLastname, ', ', Staff.StfFirstName ) AS StfFullName,
+	Subjects.SubjectName
+FROM
+	(
+		Staff
+		INNER JOIN Faculty_Subjects
+		ON Staff.StaffID = Faculty_Subjects.StaffID
+	)
+INNER JOIN Subjects
+ON Subjects.SubjectID = Faculty_Subjects.SubjectID;
+```
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.6 使用内连接，列出艺术和计算机课程的成绩都不低于 85 分的学生</summary>
@@ -160,6 +208,50 @@ on Classes.SubjectID = Subjects.SubjectID
 where Subjects.SubjectName = 'Computer Art' and Student_Schedules.Grade > 85;
 ```
 
+书中示例返回 1 条记录，可参考 view.sql 文件中的 CH08_Good_Art_CS_Students:
+
+```sql
+SELECT
+	StudArt.StudFullName
+FROM
+	(
+	SELECT DISTINCT
+		Students.StudentID,
+		Concat( Students.StudLastName, ', ', Students.StudFirstName ) AS StudFullName
+	FROM
+		(((
+					Students
+					INNER JOIN Student_Schedules ON Students.StudentID = Student_Schedules.StudentID
+					)
+				INNER JOIN Classes ON Classes.ClassID = Student_Schedules.ClassID
+				)
+			INNER JOIN Subjects ON Subjects.SubjectID = Classes.SubjectID
+		)
+		INNER JOIN Categories ON Categories.CategoryID = Subjects.CategoryID
+	WHERE
+		Categories.CategoryDescription = 'Art'
+		AND Student_Schedules.Grade >= 85
+	) StudArt
+	INNER JOIN (
+		SELECT DISTINCT Student_Schedules.StudentID
+		FROM
+		(
+			(
+				Student_Schedules
+				INNER JOIN Classes
+				ON Classes.ClassID = Student_Schedules.ClassID
+			)
+			INNER JOIN Subjects
+			ON Subjects.SubjectID = Classes.SubjectID
+		)
+		INNER JOIN Categories
+		ON Categories.CategoryID = Subjects.CategoryID
+		WHERE Categories.CategoryDescription LIKE '%Computer%'
+		AND Student_Schedules.Grade >= 85
+	) AS StudCS
+	ON StudArt.StudentID = StudCS.StudentID;
+```
+
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -177,6 +269,8 @@ Faculty_Classes
 on Faculty_Classes.StaffID = Staff.StaffID
 where Faculty_Classes.ClassID is NULL;
 ```
+
+书中示例同上。
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -200,13 +294,15 @@ on Students.StudentID = A.StudentID
 where A.ClassID is NULL;
 ```
 
+书中示例同上。
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#9.5 使用外连接，列出所有的科目类别及其所有课程</summary>
 
 需求分析，简单的 1 对多，1 对多关系，完全可以多表左外连接 left join。
 
-返回 5 条记录：
+返回 145 条记录：
 
 ```sql
 select
@@ -217,6 +313,24 @@ left join Subjects
 on Categories.CategoryID = Subjects.CategoryID
 left join Classes
 on Subjects.SubjectID = Classes.SubjectID
+```
+
+书中示例返回 145 条记录：
+
+```sql
+SELECT
+	Categories.CategoryDescription,
+	Subjects.SubjectName,
+	Classes.ClassroomID,
+	Classes.StartDate,
+	Classes.StartTime,
+	Classes.Duration
+FROM (
+	Categories
+	LEFT OUTER JOIN Subjects
+	ON Categories.CategoryID = Subjects.CategoryID
+)
+LEFT OUTER JOIN Classes ON Subjects.SubjectID = Classes.SubjectID
 ```
 
 </details>
@@ -241,7 +355,7 @@ on Classes.ClassID = ClassStatus.ClassID
 where ClassStatus.ClassID is NULL;
 ```
 
-书中答案: CH09_Classes_No_Students_Enrolled
+书中示例如上，可参考 view.sql 文件中的 CH09_Classes_No_Students_Enrolled
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -257,7 +371,7 @@ on Subjects.SubjectID = Faculty_Subjects.SubjectID
 where Faculty_Subjects.StaffID is NULL;
 ```
 
-书中答案: CH09_Subjects_No_Faculty
+书中示例如上，可参考 view.sql 文件中的 CH09_Subjects_No_Faculty
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -279,7 +393,7 @@ on Students.StudentID = A.StudentID
 where A.StudentID is NULl;
 ```
 
-书中答案: CH09_Students_Not_Currently_Enrolled
+书中示例如上，可参考 view.sql 文件中的 CH09_Students_Not_Currently_Enrolled
 
 </details>
 
@@ -301,6 +415,6 @@ left join (
 on Staff.StaffID = Faculty_Classes.StaffID
 ```
 
-书中答案: CH09_All_Faculty_And_Any_Classes
+书中示例如上，可参考 view.sql 文件中的 CH09_All_Faculty_And_Any_Classes
 
 </details>
