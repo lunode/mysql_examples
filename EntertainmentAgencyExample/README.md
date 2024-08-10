@@ -39,8 +39,75 @@ docker exec -it container_name mysql -uroot -p12345 -t < /path/to/data.SQL
 
 数据库包含 13 张表：
 
-- `Entertainers` 艺人（演唱组合）表
-  - `EntStageName` 艺人（演唱组合）名称
+- `Entertainers` 艺人（演唱组合）表。
+  - `EntertainerID` 艺人的唯一标识符。
+  - `EntStageName` 艺人的艺名或舞台名。
+  - `EntSSN` 艺人的社会安全号码（通常在美国用作身份证明）。
+  - `EntStreetAddress` 艺人的街道地址。
+  - `EntCity` 艺人所在的城市。
+  - `EntState` 艺人所在的州（2 个字符）。
+  - `EntZipCode` 艺人的邮政编码。
+  - `EntPhoneNumber` 艺人的电话号码。
+  - `EntWebPage` 艺人的个人网页。
+  - `EntEMailAddress` 艺人的电子邮件地址。
+  - `DateEntered` 艺人进入公司的日期。
+- `Engagements` 演出业务表，经纪人代表艺人和客户签订的演出业务
+  - `EngagementNumber` 业务合同的唯一标识符。
+  - `StartDate` 合同的开始日期。
+  - `EndDate` 合同的结束日期。
+  - `StartTime` 合同活动的开始时间。
+  - `StopTime` 合同活动的结束时间。
+  - `ContractPrice` 合同价格。
+- `Agents` 经纪人
+  - `AgtStreetAddress` 代理人的街道地址。
+  - `AgtCity` 代理人所在的城市。
+  - `AgtState` 代理人所在的州（2 个字符）。
+  - `AgtZipCode` 代理人所在的邮政编码。
+  - `AgtPhoneNumber` 代理人的电话号码。
+  - `DateHired` 代理人被雇佣的日期。
+  - `Salary` 代理人的薪资。
+  - `CommissionRate` 代理人的佣金率
+- `Customers`
+  - `CustStreetAddress` 客户的街道地址。
+  - `CustCity` 客户所在的城市。
+  - `CustState` 客户所在的州（2 个字符）。
+  - `CustZipCode` 客户的邮政编码。
+  - `CustPhoneNumber` 客户的电话号码。
+- `Entertainer_Members`
+  - `EntertainerID` 艺人的唯一标识符。
+  - `MemberID` 成员的唯一标识符。
+  - `Status` 成员在团体中的状态（例如活跃或非活跃）
+- `Entertainer_Styles`
+  - `EntertainerID` 艺人的唯一标识符。
+  - `StyleID` 音乐风格的唯一标识符。
+  - `StyleStrength` 艺人在该风格中的擅长程度。
+- `Members`
+  - `MemberID` 成员的唯一标识符。
+  - `MbrFirstName` 成员的名字。
+  - `MbrLastName` 成员的姓氏。
+  - `MbrPhoneNumber` 成员的电话号码。
+  - `Gender` 成员的性别。
+- `Musical_Preference`
+  - `CustomerID` 客户的唯一标识符。
+  - `StyleID` 音乐风格的唯一标识符。
+  - `PreferenceSeq` 偏好的顺序（如客户的第一偏好，第二偏好等）。
+- `Musical_Styles`
+  - `StyleID` 音乐风格的唯一标识符。
+  - `StyleName` 音乐风格的名称。
+- `ztblDays`
+  - `DateField` 日期字段，表示某一天。
+- `ztblMonths` 表
+  - ``MonthYear` 月份和年份的组合表示（如“August 2024”）。
+  - ``YearNumber` 年份（例如 2024）。
+  - ``MonthNumber` 月份数字（例如 8 表示 8 月）。
+  - ``MonthStart` 月份的开始日期。
+  - ``MonthEnd` 月份的结束日期。
+  - ``January`到 December: 每个月的标识符，用于表示各个特定的月份。
+- `ztblSkipLabels`
+  - `LabelCount` 标签跳过的计数。
+- `ztblWeeks`
+  - ``WeekStart` 一周的开始日期。
+  - ``WeekEnd` 一周的结束日期。
 
 ## 练习
 
