@@ -37,18 +37,74 @@ docker exec -it container_name mysql -uroot -p12345 -t < /path/to/data.SQL
 
 ## 表字段注释
 
-数据库包含 11 张表：
+数据库包含 12 张表：
 
 - `Products`
   - `ProductNumber` 商品 ID
   - `ProductName` 商品名称
   - `ProductDescription` 商品描述
   - `RetailPrice` 零售价格
-  - `QuantityOnHand`
+  - `QuantityOnHand` 库存数量
   - `CategoryID` 分类 ID
+- `Vendors` 产品供应商表
+  - `VendorID` 供应商 ID
+  - `VendName` 供应商名称
+  - `VendStreetAddress` 供应商街道地址
+  - `VendState` 供应商所在州
+  - `VendZipCode` 供应商邮政编码
+  - `VendPhoneNumber` 供应商电话号码
+  - `VendFaxNumber` 供应商传真号码
+  - `VendWebPage` 供应商网站地址
+  - `VendEMailAddress` 供应商邮件地址
+- `Product_Vendors` 产品和供应商中间表 linking table
+  - `ProductNumber` 产品 id
+  - `VendorID` 供应商 id
+  - `WholesalePrice` 产品批发价格
+  - `DaysToDeliver` 产品从供应商订单到交货天数
+- `Categories` 产品分类表
+  - `CategoryID` 分类 id
+  - `CategoryDescription` 分类名称
+- `Customers` 用户表
+  - `CustStreetAddress` 客户的街道地址。
+  - `CustCity` 客户所在的城市。
+  - `CustState` 客户所在的州的缩写。
+  - `CustZipCode` 客户的邮政编码。
+  - `CustAreaCode` 客户的电话号码区号。
+  - `CustPhoneNumber` 客户的电话号码。
+- `Employees` 员工表
+  - `EmpStreetAddress` 员工的街道地址。
+  - `EmpCity` 员工所在的城市。
+  - `EmpState` 员工所在的州的缩写。
+  - `EmpZipCode` 员工的邮政编码。
+  - `EmpAreaCode` 员工的电话号码区号。
+  - `EmpPhoneNumber` 员工的电话号码。
+  - `EmpBirthDate` 员工的出生日期。
 - `Orders`
+  - `OrderNumber` 订单 ID
   - `OrderDate` 下单日期
   - `ShipDate` 发货日期
+  - `CustomerID` 订单的用户 ID
+  - `EmployeeID` 生成订单的员工 ID
+- `Order_Details`
+  - `QuotedPrice` 产品下单价格
+  - `QuantityOrdered` 产品下单数量
+- `ztblMonths`
+  - `MonthYear` 月份和年份的组合，例如 "January 2023"。
+  - `YearNumber` 年份。
+  - `MonthNumber` 月份的数字表示，例如 1 表示一月。
+  - `MonthStart` 该月的开始日期。
+  - `MonthEnd` 该月的结束日期。
+  - `January` December: 用于表示每个月的特定数据。
+- `ztblPriceRanges`
+  - `PriceCategory` 价格类别的描述，用于分组产品或订单的价格范围。
+  - `LowPrice` 该价格类别的最低价格。
+  - `HighPrice` 该价格类别的最高价格。
+- `ztblPurchaseCoupons`
+  `LowSpend` 使用优惠券所需的最低花费。
+  `HighSpend` 使用优惠券的最高花费。
+  `NumCoupons` 客户在该花费范围内可获得的优惠券数量。
+- `ztblSeqNumbers`
+  - `Sequence` 序列号，用于在系统中生成唯一的数字序列
 
 ## 练习
 
