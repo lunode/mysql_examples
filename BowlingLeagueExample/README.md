@@ -101,6 +101,8 @@ INNER JOIN Bowlers
 ON Teams.CaptainID = Bowlers.BowlerID;
 ```
 
+书中示例同上。
+
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -312,6 +314,8 @@ inner join Bowlers
 on Teams.TeamID = Bowlers.TeamID;
 ```
 
+书中示例如上，可参考 view.sql 文件中的 CH08_Teams_And_Bowlers
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.6 使用内连接，显示投球手及其参加的比赛场次和得分</summary>
@@ -330,8 +334,9 @@ inner join Bowler_Scores
 on Bowlers.BowlerID = Bowler_Scores.BowlerID
 inner join Tourney_Matches
 on Bowler_Scores.MatchID = Tourney_Matches.MatchID
-
 ```
+
+书中示例如上，可参考 view.sql 文件中的 CH08_Bowler_Game_Scores
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -352,6 +357,8 @@ on A.BowlerZip = B.BowlerZip
 and A.BowlerID != B.BowlerID;
 ```
 
+书中示例如上，可参考 view.sql 文件中的 CH08_Bowlers_Same_ZipCode
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#9.5 使用外连接，列出还未举行的联赛</summary>
@@ -369,6 +376,8 @@ left join Tourney_Matches
 on Tournaments.TourneyID = Tourney_Matches.TourneyID
 where Tourney_Matches.MatchID is NULL;
 ```
+
+书中示例同上。
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -399,6 +408,37 @@ left join (
 on BowlerScore.BowlerID = Bowlers.BowlerID;
 ```
 
+书中示例，返回 106 行记录：
+
+```sql
+SELECT
+	Bowlers.BowlerLastName || ', ' || Bowlers.BowlerFirstName AS BowlerName,
+	TI.TourneyDate,
+	TI.TourneyLocation,
+	TI.MatchID,
+	TI.RawScore
+FROM
+	Bowlers
+	LEFT OUTER JOIN (
+		SELECT
+		Tournaments.TourneyDate,
+		Tournaments.TourneyLocation,
+		Bowler_Scores.MatchID,
+		Bowler_Scores.BowlerID,
+		Bowler_Scores.RawScore
+		FROM
+		(
+			Bowler_Scores
+			INNER JOIN Tourney_Matches
+			ON Bowler_Scores.MatchID = Tourney_Matches.MatchID
+		)
+		INNER JOIN Tournaments
+		ON Tournaments.TourneyID = Tourney_Matches.TourneyID
+		WHERE Bowler_Scores.RawScore > 180
+	) AS TI
+	ON Bowlers.BowlerID = TI.BowlerID;
+```
+
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -414,7 +454,7 @@ ON Tourney_Matches.MatchID = Match_Games.MatchID
 where Match_Games.MatchID is NULL;
 ```
 
-书中示例，返回 1 行，参考 CH09_Matches_Not_Played_Yet：
+书中示例，返回 1 行，可参考 view.sql 文件中的 CH09_Matches_Not_Played_Yet：
 
 ```sql
 SELECT
@@ -422,15 +462,17 @@ SELECT
 	Tourney_Matches.TourneyID,
 	Teams.TeamName AS OddLaneTeam,
 	Teams_1.TeamName AS EvenLaneTeam
-FROM
-	Teams Teams_1
+FROM Teams Teams_1
+INNER JOIN (
+	Teams
 	INNER JOIN (
-		Teams
-		INNER JOIN (
-			Tourney_Matches
-			LEFT OUTER JOIN Match_Games ON Tourney_Matches.MatchID = Match_Games.MatchID
-		) ON Teams.TeamID = Tourney_Matches.OddLaneTeamID
-	) ON Teams_1.TeamID = Tourney_Matches.EvenLaneTeamID
+		Tourney_Matches
+		LEFT OUTER JOIN Match_Games
+		ON Tourney_Matches.MatchID = Match_Games.MatchID
+	)
+	ON Teams.TeamID = Tourney_Matches.OddLaneTeamID
+)
+ON Teams_1.TeamID = Tourney_Matches.EvenLaneTeamID
 WHERE Match_Games.MatchID IS NULL;
 ```
 
@@ -472,7 +514,7 @@ left join (
 on Tournaments.TourneyID = Tourney_Matches.TourneyID
 ```
 
-书中示例，返回 174 行，参考 CH09_Matches_Not_Played_Yet：
+书中示例，返回 174 行，可参考 view.sql 文件中的 CH09_Matches_Not_Played_Yet：
 
 ```sql
 SELECT
