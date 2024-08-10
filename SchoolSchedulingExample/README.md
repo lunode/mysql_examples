@@ -42,13 +42,127 @@ docker exec -it container_name mysql -uroot -p12345 -t < /path/to/data.SQL
 - `Subjects` 课程科目表，如数学，物理。
 - `Classes` 课程安排表
   - `Credits` 学分，学完课程可以获得学分
-- ## `Staff` 教职工信息表
+- `Staff` 教职工信息表
 - `Faculty` 教职工任职信息表
   - `Title` 任职信息，如教授，副教授，教授助手
   - `Status` 任职状态，离职还是在职
   - `Tenured` 是否终身任教
 - `Faculty_Subjects` 教职工-课程科目表，教职工教习的科目
   - `ProficiencyRating`
+- `Buildings` 存储学校建筑的信息。
+  - `BuildingCode` 建筑的唯一代码。
+  - `BuildingName` 建筑名称。
+  - `NumberOfFloors` 楼层数。
+  - `ElevatorAccess` 是否有电梯。
+  - `SiteParkingAvailable` 是否有停车场。
+- `Categories` 分类信息（可能是课程分类或其他类别）。
+  - `CategoryID` 类别的唯一标识符。
+  - `CategoryDescription` 类别描述。
+  - `DepartmentID` 关联的部门 ID。
+- `Class_Rooms` 教室信息。
+  - `ClassRoomID` 教室的唯一标识符。
+  - `BuildingCode` 关联的建筑代码。
+  - `PhoneAvailable` 是否有电话。
+  - `Capacity` 教室容量。
+- `Classes` 课程信息。
+  - `ClassID` 课程的唯一标识符。
+  - `SubjectID` 关联的学科 ID。
+  - `ClassRoomID` 关联的教室 ID。
+  - `Credits` 课程学分。
+  - `SemesterNumber` 学期号。
+  - `StartDate` 开课日期。
+  - `StartTime` 开课时间。
+  - `Duration` 课程持续时间（分钟）。
+  - `MondaySchedule` SaturdaySchedule: 标识课程在一周中的哪几天进行。
+- `Departments`部门信息。
+  - `DepartmentID` 部门的唯一标识符。
+  - `DeptName` 部门名称。
+  - `DeptChair` 部门负责人 ID。
+- `Faculty` 教职员工信息。
+  - `StaffID` 教职员工的唯一标识符。
+  - `Title` 职位头衔。
+  - `Status` 职位状态（例如全职、兼职）。
+  - `Tenured` 是否获得终身教职。
+- `Faculty_Categories` 教职员工与类别之间的关系。
+  - `StaffID` 教职员工的唯一标识符。
+  - `CategoryID` 类别的唯一标识符。
+- `Faculty_Classes` 教职员工与课程之间的关系。
+  - `ClassID` 课程的唯一标识符。
+  - `StaffID` 教职员工的唯一标识符。
+- `Faculty_Subjects` 教职员工与学科之间的关系。
+  - `StaffID` 教职员工的唯一标识符。
+  - `SubjectID` 学科的唯一标识符。
+  - `ProficiencyRating` 教职员工在该学科的熟练度评分。
+- `Majors` 专业信息。
+  - `MajorID` 专业的唯一标识符。
+  - `Major` 专业名称。
+- `Staff` 员工个人信息。
+  - `StaffID` 员工的唯一标识符。
+  - `StfFirstName` 员工的名字。
+  - `StfLastname` 员工的姓氏。
+  - `StfStreetAddress` 街道地址。
+  - `StfCity` 城市。
+  - `StfState` 州。
+  - `StfZipCode` 邮政编码。
+  - `StfAreaCode` 电话区号。
+  - `StfPhoneNumber` 电话号码。
+  - `Salary` 薪资。
+  - `DateHired` 入职日期。
+  - `Position` 职位名称。
+- `Student_Class_Status` 学生课程状态信息。
+  - `ClassStatus` 课程状态的唯一标识符。
+  - `ClassStatusDescription` 课程状态描述。
+- `Student_Schedules` 学生课程安排。
+  - `StudentID` 学生的唯一标识符。
+  - `ClassID` 课程的唯一标识符。
+  - `ClassStatus` 课程状态。
+  - `Grade` 课程成绩。
+- `Students` 学生个人信息。
+  - `StudentID` 学生的唯一标识符。
+  - `StudFirstName` 学生的名字。
+  - `StudLastName` 学生的姓氏。
+  - `StudStreetAddress` 街道地址。
+  - `StudCity` 城市。
+  - `StudState` 州。
+  - `StudZipCode` 邮政编码。
+  - `StudAreaCode` 电话区号。
+  - `StudPhoneNumber` 电话号码。
+  - `StudBirthDate` 出生日期。
+  - `StudGender` 性别。
+  - `StudMaritalStatus` 婚姻状况。
+  - `StudMajor` 关联的专业 ID。
+- `Subjects` 学科信息。
+  - `SubjectID` 学科的唯一标识符。
+  - `CategoryID` 关联的类别 ID。
+  - `SubjectCode` 学科代码。
+  - `SubjectName` 学科名称。
+  - `SubjectPreReq` 学科先修要求。
+  - `SubjectDescription` 学科描述。
+  - `SubjectEstClassSize` 预计班级规模。
+- `ztblGenderMatrix` 用于存储性别信息。
+  - `Gender` 性别代码，如 'M' 表示男性，'F' 表示女性。
+  - `Male` 男性数量或标识。
+  - `Female` 女性数量或标识。
+- `ztblLetterGrades` 用于存储成绩等级信息。
+  - `LetterGrade` 字母成绩等级，如 'A'、'B'、'C'。
+  - `LowGradePoint` 该成绩等级的最低分数。
+  - `HighGradePoint` 该成绩等级的最高分数。
+- `ztblMaritalStatusMatrix` 用于存储婚姻状况信息。
+  - `MaritalStatus`婚姻状况代码，如 'M' 表示已婚，'S' 表示单身，'W' 表示丧偶，'D' 表示离婚。
+  - `Married` 已婚人数或标识。
+  - `Single` 单身人数或标识。
+  - `Widowed` 丧偶人数或标识。
+  - `Divorced` 离婚人数或标识。
+- `ztblProfRatings` 用于存储教职员工在某一学科上的熟练度评分。
+  - `ProfRatingDesc` 熟练度评分的描述，如 'Excellent'、'Good'。
+  - `ProfRatingLow` 评分的最低值。
+  - `ProfRatingHigh` 评分的最高值。
+- `ztblSemesterDays` 用于存储学期内的每一天的信息。
+  - `SemesterNo` 学期编号。
+  - `SemDate` 学期中的具体日期。
+  - `SemDayName` 该日期对应的星期几，如 'Monday'、'Tuesday'。
+- `ztblSeqNumbers` 用于存储序列号信息，通常用于生成唯一的编号。
+  - `Sequence` 序列号。
 
 ## 练习
 
