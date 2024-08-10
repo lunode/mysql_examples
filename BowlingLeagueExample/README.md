@@ -40,6 +40,16 @@ docker exec -it container_name mysql -uroot -p12345 -t < /path/to/data.SQL
 数据库包含 9 张表：
 
 - `Bowlers` 球员表
+  - `BowlerID` 投手的唯一标识符。
+  - `BowlerLastName` 投手的姓氏。
+  - `BowlerFirstName` 投手的名字。
+  - `BowlerMiddleInit` 投手的中间名首字母。
+  - `BowlerAddress` 投手的地址。
+  - `BowlerCity` 投手所在的城市。
+  - `BowlerState` 投手所在的州。
+  - `BowlerZip` 投手的邮政编码。
+  - `BowlerPhoneNumber` 投手的电话号码。
+  - `TeamID` 投手所属的队伍标识符。
 - `Tournaments` 联赛
   - `ToryneyID` 联赛 ID
   - `ToryneyDate` 联赛日期
@@ -55,7 +65,25 @@ docker exec -it container_name mysql -uroot -p12345 -t < /path/to/data.SQL
   - `GameNumber` 该比赛场次回合数
   - `WinningTeamID` 该比赛场次胜利团队 ID
 - `Bowler_Scores` 该比赛场次胜利团队 ID
-  - `HandiCapScore` 让分得分，室内联赛让步优待分
+  - `MatchID` 比赛的唯一标识符。
+  - `GameNumber` 比赛中的游戏编号。
+  - `BowlerID` 投手的唯一标识符。
+  - `RawScore` 投手的实际得分。
+  - `HandiCapScore` 让分得分，加权得，室内联赛让步优待分
+  - `WonGame` 是否赢得比赛，0 表示否，1 表示是
+- `Teams` 存储队伍信息。
+  - `TeamID` 队伍的唯一标识符。
+  - `TeamName` 队伍的名称。
+  - `CaptainID`队长的标识符
+- `ztblBowlerRatings` 存储投手的评分信息。
+  - `BowlerRating` 投手的评分描述，如 "Beginner"、"Pro"。
+  - `BowlerLowAvg` 投手的最低平均分。
+  - `BowlerHighAvg` 投手的最高平均分。
+- `ztblSkipLabels` 用于生成跳过标签的信息。
+  - `LabelCount` 标签的数量。
+- `ztblWeeks` 存储每周的起始和结束日期。
+  - `WeekStart` 每周的开始日期。
+  - `WeekEnd` 每周的结束日期。
 
 ## 练习
 
