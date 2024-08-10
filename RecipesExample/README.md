@@ -80,7 +80,7 @@ inner join Recipe_Classes
 on Recipe_Classes.RecipeClassID = Recipes.RecipeClassID;
 ```
 
-书中提供的其它示例：
+书中示例，返回 15 条记录：
 
 ```sql
 select RecipeTitle, RecipeClassDescription, Preparation
@@ -88,9 +88,13 @@ from Recipes, Recipe_Classes
 where Recipe_Classes.RecipeClassID = Recipes.RecipeClassID;
 ```
 
+由于是 `所有菜品`，所以正确 SQL 应该是使用 left join，但本题出现在内连接章节中，且不论是内连接，还是左外连接，由于不存在没有菜品分类的菜品，所以结果是一样。
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.2.3-2 使用内连接，列出数据库中菜品分类为主菜 Main course 或者甜品 Dessert 的菜品的名称，制作方法和菜品类型描述</summary>
+
+需求分析，Recipes 共有 15 条记录，Recipe_Classes 共有 7 条件，也就是造成了 7 x 15 = 105 条查询记录
 
 返回 9 条记录：
 
@@ -105,12 +109,12 @@ or RecipeClassDescription = "Dessert";
 
 </details>
 
-对于上述内连接查询，Recipes 共有 15 条记录，Recipe_Classes 共有 7 条件，也就是造成了 7 x 15 = 105 条查询记录。
-
-对于上述查询，可以使用 `子查询` 优化查询。
-
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary markdown="span">#8.2.3-3 使用子查询优化上述查询</summary>
+<summary markdown="span">#8.2.3-3 使用内连接，使用子查询优化上述查询</summary>
+
+使用子查询优化后，子查询的派生表 Derived Table 只有 2 条数据，内连接表 Recipes 有 7 条数据，于是就有了 7 x 2 = 14 条查询记录。
+
+虽然理论上降低了参与查询的数据量，优化了查询速度，但实际上 Mysql 优化器会进行主动优化。通过 Explain 分析查询语句，发现两种查询语句的效率其实是一样的。
 
 返回 9 条记录：
 
@@ -127,17 +131,14 @@ on DerivedTable.RecipeClassID = Recipes.RecipeClassID;
 ```
 
 </details>
-使用子查询优化后，子查询的派生表 Derived Table 只有 2条数据，内连接表 Recipes 有 7 条数据，于是就有了 7 x 2 = 14 条查询记录。
-
-虽然理论上降低了参与查询的数据量，优化了查询速度，但实际上 Mysql 优化器会进行主动优化。通过 Explain 分析查询语句，发现两种查询语句的效率其实是一样的。
-
-接下来 5 表连接：
-
-![5表连接](./imgs//5table-join.png)
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 
-<summary markdown="span">#8.2.3-4 五表连接，获取菜品类型、菜品名、制作说明、食材名、食材序号、食材数量和食材度 量单位，并按菜品名和序号排序</summary>
+<summary markdown="span">#8.2.3-4 使用内连接，五表连接，获取菜品类型、菜品名、制作说明、食材名、食材序号、食材数量和食材度 量单位，并按菜品名和序号排序</summary>
+
+![5表连接](./imgs//5table-join.png)
+
+如果不存在外键缺失为 NULL 的情况，可以不使用左外连接来获取结果集，因为不存在外键为 NULL 的情况。但如果存在外键为 NULL 的情况，就必须使用 left join 来获取这些数据，因为可能存在没有分类的菜品，没有食材的菜品等情况。
 
 返回 88 条记录：
 
@@ -160,12 +161,7 @@ RecipeSeqNo;
 Recipes.RecipeTitle;
 ```
 
-</details>
-
-<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary markdown="span">#8.2.3-4 五表连接，书中示例</summary>
-
-返回 88 条记录：
+书中示例 1，返回 88 条记录：
 
 ```sql
 SELECT
@@ -197,11 +193,7 @@ ON Measurements.MeasureAmountID = Recipe_Ingredients.MeasureAmountID
 ORDER BY RecipeTitle, RecipeSeqNo
 ```
 
-</details>
-<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary markdown="span">#8.2.3-4 五表连接，书中示例 2</summary>
-
-返回 88 条记录：
+书中示例 2，返回 88 条记录：
 
 ```sql
 SELECT
@@ -233,7 +225,9 @@ ORDER BY RecipeTitle, RecipeSeqNo
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary markdown="span">#8.2.4 列出所有菜品的名称以及制作每种菜品所需的食材</summary>
+<summary markdown="span">#8.2.4 使用内连接，列出所有菜品的名称以及制作每种菜品所需的食材</summary>
+
+需求分析，返回 `所有` 菜品的名称，如果确保数据库不存在外键缺失的情况，可以使用内连接，如果可能存在外键缺失的情况，也就是外键为 NULL 导致内连接匹配后丢失该行数据，则需要使用外连接。
 
 返回 88 条记录：
 
@@ -264,7 +258,7 @@ ON Ingredients.IngredientID = Recipe_Ingredients.IngredientID;
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary markdown="span">#8.4.1 列出包含食材牛肉或大蒜的菜品</summary>
+<summary markdown="span">#8.4.1 使用内连接，列出包含食材牛肉或大蒜的菜品</summary>
 
 返回 5 条记录：
 
@@ -277,6 +271,8 @@ inner join Ingredients
 on Recipe_Ingredients.IngredientID = Ingredients.IngredientID
 where Ingredients.IngredientName = 'Beef' or Ingredients.IngredientName = 'Garlic';
 ```
+
+优化一下：
 
 ```sql
 select DISTINCT Recipes.RecipeTitle
@@ -347,7 +343,7 @@ WHERE Recipe_Classes.RecipeClassDescription = 'Main course';
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.4.3 使用内连接，显示包含胡萝卜的菜品的所有食材</summary>
 
-参考 DrawSQL ERD 图，先将菜品表 Recipes 与菜品-食材 Recipe_Ingredients 表 inner join，然后再 inner join Ingredients 表，获取到包含胡萝卜食材的菜品 ID，然后再 inner join 一次 Recipe_Ingredients 表，获取该菜品 ID 的所有食材。
+需求分析，观察 DrawSQL ERD 图，首选获取将菜品-食材连接表 Recipe_Ingredients 和食材表 Ingredients 内连接，获取包含胡萝卜的菜品 ID，然后将这个结果集和菜品-食材表食材表 Recipe_Ingredients 以及 Ingredients 内连接，获取包含胡萝卜菜品的全部食材。
 
 返回 16 条记录：
 
@@ -402,14 +398,50 @@ on Recipes.RecipeClassID = Recipe_Classes.RecipeClassID
 where Recipe_Classes.RecipeClassDescription = 'Salad';
 ```
 
+书中示例，返回 1 条记录，可参考 View.sql 文件 CH08_Salads:
+
+```sql
+SELECT
+	Recipes.RecipeTitle
+FROM
+	Recipes
+	INNER JOIN Recipe_Classes
+	ON Recipes.RecipeClassID = Recipe_Classes.RecipeClassID
+WHERE Recipe_Classes.RecipeClassDescription = 'Salad';
+```
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary markdown="span">#8.6 使用内连接，列出所有包含奶制品的菜品</summary>
+<summary markdown="span">#8.6 使用内连接，列出所有包含奶制品食材的菜品</summary>
+
+需求分析，返回 `所有` 菜品，但是包含条件，因为这个条件，所以排除了左连接，因为当菜品的外键缺失时，是无法包含奶制品食材的，所以本例只需要使用内连接即可。
 
 返回 2 条记录：
 
 ```sql
+select Recipes.RecipeTitle
+from Recipes
+inner join Recipe_Ingredients
+on Recipes.RecipeID = Recipe_Ingredients.RecipeID
+inner join Ingredients
+on Ingredients.IngredientID = Recipe_Ingredients.IngredientID
+inner join Ingredient_Classes
+on Ingredient_Classes.IngredientClassID = Ingredients.IngredientClassID
+where Ingredient_Classes.IngredientClassDescription = 'Dairy';
+```
 
+书中示例，返回 2 条记录，可参考 View.sql 文件 CH08_Recipes_Containing_Dairy:
+
+```sql
+SELECT DISTINCT Recipes.RecipeTitle
+FROM Recipes
+INNER JOIN Recipe_Ingredients
+ON Recipes.RecipeID = Recipe_Ingredients.RecipeID
+INNER JOIN Ingredients
+ON Ingredients.IngredientID = Recipe_Ingredients.IngredientID
+INNER JOIN Ingredient_Classes
+ON Ingredient_Classes.IngredientClassID = Ingredients.IngredientClassID
+WHERE Ingredient_Classes.IngredientClassDescription = 'Dairy';
 ```
 
 </details>
@@ -426,6 +458,33 @@ from Ingredients A
 inner join Ingredients B
 on A.MeasureAmountID = B.MeasureAmountID
 and A.IngredientID != B.IngredientID;
+```
+
+书中示例，返回 628 条记录，可参考 View.sql 文件 CH08_Ingredients_Same_Measure:
+
+```sql
+SELECT
+	First_Ingredient.FirstIngredientName,
+	First_Ingredient.MeasurementDescription,
+	Second_Ingredient.SecondIngredientName
+FROM
+	(
+		SELECT
+		Ingredients.IngredientName AS FirstIngredientName,
+		Measurements.MeasurementDescription
+		FROM Ingredients
+		INNER JOIN Measurements ON Ingredients.MeasureAmountID = Measurements.MeasureAmountID
+	) First_Ingredient
+	INNER JOIN (
+		SELECT
+		Ingredients.IngredientName AS SecondIngredientName,
+		Measurements.MeasurementDescription
+		FROM Ingredients
+		INNER JOIN Measurements
+		ON Ingredients.MeasureAmountID = Measurements.MeasureAmountID
+	) Second_Ingredient
+	ON First_Ingredient.FirstIngredientName != Second_Ingredient.SecondIngredientName
+	AND First_Ingredient.MeasurementDescription = Second_Ingredient.MeasurementDescription;
 ```
 
 </details>
@@ -462,7 +521,6 @@ on A.RecipeID = B.RecipeID
 可以优化一下结构:
 
 ```sql
-
 select DISTINCT Recipes.RecipeTitle, Recipes.RecipeID
 from Recipes
 inner join Recipe_Ingredients
@@ -482,15 +540,47 @@ on A.RecipeID = Recipes.RecipeID
 where Ingredients.IngredientName = 'Beef';
 ```
 
+书中示例，返回 1 条记录，可参考 View.sql 文件 CH08_Beef_And_Garlic_Recipes:
+
+```sql
+SELECT
+	BeefRecipes.RecipeTitle
+FROM
+	(
+	SELECT
+		Recipes.RecipeID,
+		Recipes.RecipeTitle
+	FROM
+		(
+			Recipes
+			INNER JOIN Recipe_Ingredients ON Recipes.RecipeID = Recipe_Ingredients.RecipeID
+		)
+		INNER JOIN Ingredients ON Ingredients.IngredientID = Recipe_Ingredients.IngredientID
+	WHERE
+		Ingredients.IngredientName = 'Beef'
+	) BeefRecipes
+	INNER JOIN (
+	SELECT
+		Recipe_Ingredients.RecipeID
+	FROM
+		Recipe_Ingredients
+		INNER JOIN Ingredients ON Ingredients.IngredientID = Recipe_Ingredients.IngredientID
+	WHERE
+	Ingredients.IngredientName = 'Garlic'
+	) GarlicRecipes ON BeefRecipes.RecipeID = GarlicRecipes.RecipeID;
+```
+
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#9.2 使用外连接，列出所有的菜品类型以及各类型包含的菜品</summary>
 
-查询 Recipes 表，返回 15 条记录：
+使用 Recipe_Classes 分类表作为左表进行查询，除了两张表 **`交集`** 的 15 条菜品记录外，还多出了 1 条分类记录，该记录没有任何菜品，但因为是左外连接，所以保留该结果
+
+返回 15 条记录：
 
 ```sql
-select * from Recipes;
+select RecipeTitle from Recipes;
 ```
 
 返回 16 行记录：
@@ -501,11 +591,15 @@ left outer join Recipes
 on Recipe_Classes.RecipeClassID = Recipes.RecipeClassID;
 ```
 
-使用 Recipe_Classes 分类表作为左表进行查询，除了两张表 **`交集`** 的 15 条菜品记录外，还多出了 1 条分类记录，该记录没有任何分类。
+书中示例同上
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#9.2 使用外连接，列出不包含任何菜品的菜品类型</summary>
+
+需求分析，使用 Recipe_Classes 分类表作为左表进行查询，除了两张表 **`交集`** 的 15 条菜品记录外，还多出了 1 条分类记录，该记录没有任何菜品。
+
+返回 1 条记录：
 
 ```sql
 select RecipeClassDescription, RecipeTitle from Recipe_Classes
@@ -514,7 +608,7 @@ on Recipe_Classes.RecipeClassID = Recipes.RecipeClassID
 where Recipes.RecipeID is null;
 ```
 
-使用 Recipe_Classes 分类表作为左表进行查询，除了两张表 **`交集`** 的 15 条菜品记录外，还多出了 1 条分类记录，该记录没有任何分类。
+书中示例同上
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -558,24 +652,30 @@ FROM
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#9.2 使用外连接，列出菜品类型为沙拉 Salad，汤类 Soups 和主菜 Main course 类型的菜品，并且菜品名称中含有 beef。</summary>
 
-使用不同的查询方式，返回的记录数不一样，但都包含一条 `Main course | Roast Beef` 的记录。
+使用不同的查询方式，返回的记录数不一样，但都包含一条 `| Main course | Roast Beef |` 的记录。
+
+返回 2 条记录：
 
 ```sql
-SELECT RCFiltered.RecipeClassDescription, R.RecipeTitle
-              FROM
-                  (SELECT RecipeClassID,
-                      RecipeClassDescription
-                  FROM Recipe_Classes AS RC
-                  WHERE RC.RecipeClassDescription = 'Salads'
-                      OR RC.RecipeClassDescription = 'Soup'
-                      OR RC.RecipeClassDescription = 'Main Course') AS RCFiltered
-              LEFT OUTER JOIN
-                  (SELECT Recipes.RecipeClassID, Recipes.RecipeTitle
-										FROM Recipes
-                  WHERE Recipes.RecipeTitle LIKE '%beef%')
-                AS R
-              ON RCFiltered.RecipeClassID = R.RecipeClassID
+SELECT
+	RCFiltered.RecipeClassDescription,
+	R.RecipeTitle
+FROM (
+	SELECT RecipeClassID, RecipeClassDescription
+	FROM Recipe_Classes
+	WHERE RecipeClassDescription = 'Salads'
+	OR RecipeClassDescription = 'Soup'
+	OR RecipeClassDescription = 'Main Course'
+) AS RCFiltered
+LEFT OUTER JOIN (
+	SELECT Recipes.RecipeClassID, Recipes.RecipeTitle
+	FROM Recipes
+	WHERE Recipes.RecipeTitle LIKE '%beef%'
+) AS R
+ON RCFiltered.RecipeClassID = R.RecipeClassID
 ```
+
+书中其它示例，返回 7 条记录：
 
 ```sql
 SELECT Recipe_Classes.RecipeClassDescription,
@@ -602,7 +702,11 @@ SELECT Recipe_Classes.RecipeClassDescription,
 ```sql
 select
 Recipe_Classes.RecipeClassDescription,
-Recipes.RecipeTitle
+Recipes.RecipeTitle,
+Recipes.Preparation,
+Ingredients.IngredientName,
+Recipe_Ingredients.Amount,
+Measurements.MeasurementDescription
 from Recipe_Classes
 left join Recipes
 on Recipe_Classes.RecipeClassID = Recipes.RecipeClassID
@@ -610,6 +714,8 @@ inner join Recipe_Ingredients
 on Recipes.RecipeID = Recipe_Ingredients.RecipeID
 inner join Ingredients
 on Recipe_Ingredients.IngredientID = Ingredients.IngredientID
+inner join Measurements
+on Measurements.MeasureAmountID = Recipe_Ingredients.MeasureAmountID
 ```
 
 书中示例，返回 88 条记录：
@@ -659,7 +765,7 @@ on Recipe_Ingredients.IngredientID = Ingredients.IngredientID
 | ---------------------- | ------------- |
 | ...                    | ...           |
 | Dessert                | Coupe Colonel |
-| Soup                   |               |
+| Soup                   | NULL          |
 
 > [!CAUTION]
 > 需要注意，外连接只在 1 对多关系时才会按照预期那样工作，而 Recipes, Recipe_Classes 是 1 对多 Recipe_Classes，Recipe_Ingredients 是 1 对多的关系，所以下面书中示例并没有像我所给出示例那样，全部使用内连接，从而导致 Soup 信息的丢失，而我上面全部使用 left join 也并不会影响数据。
@@ -691,7 +797,7 @@ ORDER BY RecipeTitle, RecipeSeqNo
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary markdown="span">#9.7 使用外连接，列出未在任何菜品中使用的食材</summary>
+<summary markdown="span">#9.5 使用外连接，列出未在任何菜品中使用的食材</summary>
 
 返回 20 条记录：
 
@@ -707,11 +813,13 @@ on Ingredients.IngredientID = Recipe_Ingredients.IngredientID
 where Recipe_Ingredients.RecipeId is NULL;
 ```
 
+书中示例同上。
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary markdown="span">#9.7 使用全外连接，从 Recipes 数据库中获取所有的菜品类型、所有的菜品名以及各个菜品的食材序号、食材数量和食材度量单位，还有所有的食材名，并依次按菜品类型描述降序、菜品名和食材序列号升序排列</summary>
+<summary markdown="span">#9.5 使用全外连接，从 Recipes 数据库中获取所有的菜品类型、所有的菜品名以及各个菜品的食材序号、食材数量和食材度量单位，还有所有的食材名，并依次按菜品类型描述降序、菜品名和食材序列号升序排列</summary>
 
-需求分析，主要保留所有菜品类型，也就是 Recipe_Classes 全表数据，所有的菜品名，也就是 Recipes 全表数据，Recipe_Classes 和 Recipes 是 1 对多的关系，所以 inner join 和 left/right join 都不符合，只有全外连接 full outer join 适用。
+需求分析，主要保留所有菜品类型，也就是 Recipe_Classes 全表数据，所有的菜品名，也就是 Recipes 全表数据，Recipe_Classes 和 Recipes 是 1 对多的关系，所以 inner join 和 left/right join 都不符合保留两张表的全部数据，只有全外连接 full outer join 适用。
 
 <img src="./imgs/demo9-5.png"/>
 
@@ -725,11 +833,11 @@ where Recipe_Ingredients.RecipeId is NULL;
 
 Measurements 和 第 1 部分是 1 对多，实际上反过来，第 1 部分和 Measurements 是 1 对 1 的关系，可以无关紧要的内连接一下。
 
-第二部分由于需求中没有使用到食材的分类，所以两张表不用外连接，因为没说要全部的食材和食材分类，所以不需要全外连接，以至把所有食材和所有食材分类都保存。
+第二部分由于需求中没有使用到食材的分类，所以两张表不用外连接，因为没说要全部的食材和食材分类，所以不需要全外连接，只需要 Ingredients 表即可。
 
 然后第 2 部分和 第 1 部分是 1 对多关系，为了保全两张表的全部信息，所以要全外连接。
 
-返回 109 条记录，由于 MySQL 不支持全外连接，所以需要自己转换 SQL：
+书中示例，返回 109 条记录，由于 MySQL 不支持全外连接，所以需要自己转换 SQL：
 
 ```sql
 SELECT
@@ -774,7 +882,7 @@ on Recipes.RecipeClassID = Recipe_Classes.RecipeClassID
 where Recipes.RecipeClassID is NULL;
 ```
 
-书中示例返回 1 条记录，参考 CH09_Recipe_Classes_No_Recipes
+书中示例同上，返回 1 条记录，可参考 view.sql 文件 CH09_Recipe_Classes_No_Recipes
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -793,7 +901,7 @@ left join (
 on Ingredients.IngredientID = Recipe_Ingredients.IngredientID;
 ```
 
-书中示例返回 108 条记录，参考 CH09_All_Ingredients_Any_Recipes
+书中示例同上，返回 108 条记录，可参考 view.sql 文件 CH09_All_Ingredients_Any_Recipes
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -806,10 +914,24 @@ select * from Recipe_Classes
 left join Recipes
 on Recipes.RecipeClassID = Recipe_Classes.RecipeClassID
 where RecipeClassDescription in ('Soup','Salad','Main course')
-
 ```
 
-书中示例返回 9 条记录，参考 CH09_Salad_Soup_Main_Courses
+书中示例返回 9 条记录，可参考 view.sql 文件 CH09_Salad_Soup_Main_Courses:
+
+```sql
+SELECT
+	RCFiltered.RecipeClassDescription,
+	Recipes.RecipeTitle
+FROM	(
+	SELECT RecipeClassID, RecipeClassDescription
+	FROM Recipe_Classes
+	WHERE RecipeClassDescription = 'Salad'
+	OR RecipeClassDescription = 'Soup'
+	OR RecipeClassDescription = 'Main course'
+) as RCFiltered
+LEFT OUTER JOIN Recipes
+ON RCFiltered.RecipeClassID = Recipes.RecipeClassID;
+```
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -823,6 +945,6 @@ left join Recipes
 on Recipes.RecipeClassID = Recipe_Classes.RecipeClassID
 ```
 
-书中示例返回 16 条记录，参考 CH09_All_RecipeClasses_And_Matching_Recipes
+书中示例同上，返回 16 条记录，可参考 view.sql 文件 CH09_All_RecipeClasses_And_Matching_Recipes
 
 </details>
