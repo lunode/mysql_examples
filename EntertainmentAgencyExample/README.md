@@ -123,15 +123,20 @@ inner join Engagements
 on Entertainers.EntertainerID = Engagements.EntertainerID;
 ```
 
+书中示例同上。
+
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.4.2 使用内连接，查找为顾客姓 Berg 或 姓 Hallmark 演出过的演唱组合</summary>
 
+需求分析，可以将需求拆分为给顾客 Berg 演出过的演唱组合以及给顾客 Hallmark 演出过的演唱组合的并集，可以使用 Where 子句过滤笛卡尔积，只留下给 Berg 演出过的演唱组合，以及给顾客 Hallmark 演唱过的组合。
+
 返回 8 条记录：
 
 ```sql
-select distinct Entertainers.EntStageName from Entertainers
+select distinct Entertainers.EntStageName
+from Entertainers
 inner join Engagements
 on Entertainers.EntertainerID = Engagements.EntertainerID
 inner join Customers
@@ -224,6 +229,8 @@ SELECT EntBerg.EntStageName
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.6 使用内连接，显示经纪人及其签订的演出合约的日期，并按演出合约的起始日期排序</summary>
 
+需求分析，由于并没有说要列出没有任何合约的经纪人，所以使用内连接即可以获得。
+
 返回 111 条记录：
 
 ```sql
@@ -233,6 +240,8 @@ inner join Engagements
 on Agents.AgentID = Engagements.AgentID
 order by Engagements.StartDate, Engagements.StartTime;
 ```
+
+书中示例同上，可参考 view.sql 文件中的 CH08_Agents_Booked_Dates
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -251,6 +260,17 @@ inner join Engagements
 on Customers.CustomerID = Engagements.CustomerID
 inner join Entertainers
 on Engagements.EntertainerID = Entertainers.EntertainerID;
+```
+
+书中示例返回 75 条记录，可参考 view.sql 文件中的 CH08_Customers_Booked_Entertainers
+
+```sql
+SELECT DISTINCT Concat(Customers.CustFirstName, ' ', Customers.CustLastName) AS CustFullName, Entertainers.EntStageName
+FROM (Customers
+INNER JOIN Engagements
+ON Customers.CustomerID = Engagements.CustomerID)
+INNER JOIN Entertainers
+ON Entertainers.EntertainerID = Engagements.EntertainerID;
 ```
 
 </details>
@@ -272,6 +292,8 @@ inner JOIN Agents
 on Entertainers.EntZipCode = Agents.AgtZipCode;
 ```
 
+书中示例同上，可参考 view.sql 文件中的 CH08_Agents_Entertainers_Same_Postal
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#9.5 使用外连接，列出从未签约的组合</summary>
@@ -285,6 +307,8 @@ left join Engagements
 on Entertainers.EntertainerID = Engagements.EntertainerID
 where Engagements.EntertainerID is NULL;
 ```
+
+书中示例同上。
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -321,6 +345,8 @@ right join Musical_Styles
 on Musical_Styles.StyleID = Musical_Preferences.StyleID
 ```
 
+书中示例同上左连接。
+
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -336,6 +362,8 @@ on Engagements.AgentID = Agents.AgentID
 where Engagements.AgentID is NULL;
 ```
 
+书中示例同上，可参考 view.sql 文件中的 CH09_Agents_No_Contracts
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#9.7 使用外连接，列出没有与任何演唱组合签约的顾客</summary>
@@ -350,6 +378,8 @@ on Customers.CustomerID = Engagements.CustomerID
 where Engagements.CustomerID is NULL;
 ```
 
+书中示例同上，可参考 view.sql 文件中的 CH09_Customers_No_Bookings
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#9.7 使用外连接，列出所有的演唱组合及其签订的演出合约</summary>
@@ -362,5 +392,7 @@ from Entertainers
 left JOIN Engagements
 on Entertainers.EntertainerID = Engagements.EntertainerID;
 ```
+
+书中示例同上，可参考 view.sql 文件中的 CH09_All_Entertainers_And_Any_Engagements
 
 </details>
