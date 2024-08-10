@@ -55,6 +55,8 @@ docker exec -it container_name mysql -uroot -p12345 -t < /path/to/data.SQL
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.4.1 使用内连接，显示所有商品及其所属的类别</summary>
 
+需求分析，获取 `所有` 商品，即在没有外键为 NULL 的情况下，可以使用内连接。如果外键可能存在为 NULL 的情况，则需要使用左外连接。
+
 返回 40 条记录：
 
 ```sql
@@ -68,6 +70,8 @@ on Products.CategoryID = Categories.CategoryID;
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.4.2 使用内连接，找出所有订购了自行车头盔的顾客</summary>
+
+需求分析，获取 `所有` 顾客，即在没有外键为 NULL 的情况下，可以使用内连接。如果外键可能存在为 NULL 的情况，则需要使用左外连接。而限制条件 `订购了自行车头盔`，就排除了所有外键为 NULL 的情况，所以此例使用内连接。
 
 由于顾客可能多次订购头盔，因此使用了关键字 DISTINCT 来消除重复行。
 
@@ -108,7 +112,7 @@ WHERE Products.ProductName LIKE '%Helmet%';
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.4.3 使用内连接，找出所有订购了自行车和头盔的顾客</summary>
 
-可以将需求拆分成，购买了自行车的顾客和购买了头盔的顾客的交集。
+需求分析，可以将需求拆分成，购买了自行车的顾客和购买了头盔的顾客的交集。所有购买了自行车的顾客，参考上例，由于条件中排除了外键为 NULL 的情况，所以使用内连接。所有订购了头盔的顾客是一样的逻辑，使用内连接获取，然后取这两个结果集的交集即可。
 
 查询购买了自行车的顾客，返回 909 条记录：
 
@@ -219,9 +223,11 @@ on Customers.CustomerID = Orders.CustomerID
 order by Orders.OrderDate, Customers.CustomerID;
 ```
 
+书中示例同上，可参考 view.sql 文件中 CH08_Customers_And_OrderDates
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary markdown="span">#8.6 列出员工及其为哪些顾客下了订单</summary>
+<summary markdown="span">#8.6 使用内连接，列出员工及其为哪些顾客下了订单</summary>
 
 返回 211 条记录：
 
@@ -235,6 +241,8 @@ on Employees.EmployeeID = Orders.EmployeeID
 inner join Customers
 on Orders.CustomerID = Customers.CustomerID
 ```
+
+书中示例同上，可参考 view.sql 文件中 CH08_Employees_And_Customers
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -257,6 +265,8 @@ on Products.ProductNumber = Order_Details.ProductNumber
 order by Orders.OrderNumber;
 ```
 
+书中示例同上，可参考 view.sql 文件中 CH08_Orders_With_Products
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.6 使用内连接，显示供应商及其提供的价格低于 100 美元的商品</summary>
@@ -273,6 +283,8 @@ on Product_Vendors.VendorID = Vendors.VendorID
 where Product_Vendors.WholesalePrice < 100;
 ```
 
+书中示例同上，可参考 view.sql 文件中 CH08_Vendors_And_Products_Less_Than_100
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#8.6 使用内连接，列出同姓的顾客和员工</summary>
@@ -284,6 +296,8 @@ select Customers.CustFirstName, Customers.CustLastName, Employees.EmpFirstName, 
 inner join Employees
 on Customers.CustLastName = Employees.EmpLastName;
 ```
+
+书中示例同上，可参考 view.sql 文件中 CH08_Customers_Employees_Same_LastName
 
 </details>
 
@@ -301,6 +315,8 @@ from Customers
 inner join Employees
 on Customers.CustCity = Employees.EmpCity;
 ```
+
+书中示例同上，可参考 view.sql 文件中 CH08_Customers_Employees_Same_City
 
 </details>
 
@@ -321,11 +337,13 @@ Order_Details.ProductNumber
 WHERE Order_Details.OrderNumber IS NULL;
 ```
 
+书中示例同上。
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#9.5 使用左外连接，查询所有顾客及其自行车订单</summary>
 
-首先上来就是万能 left join 大法，手写 **`错误`** 示例：
+首先上来就是万能 left join 大法，手写 **`错误`** 示例，返回 909 条记录：
 
 ```sql
 -- 这是错误示例
@@ -342,28 +360,38 @@ on Products.CategoryID = Categories.CategoryID
 where Categories.CategoryDescription = 'Bikes';
 ```
 
+MySQL 查询语句的执行顺序
+
+- `5.select column, 5.2 distinct, 5.3 top`
+- `1.from`
+- `2.where`
+- `3.group by`
+- `4.having`
+- `6.order by`
+- `limit,offset`
+
 尽管使用左连接，想留住 Customers 表中没有下单，甚至没有下单 Bikes 的用户，但到了最后，一条 **`where`** 筛选就将没有买 Bikes 的客户过滤掉，更别说没有下单任何产品的用户。
 
-所以便想到了改进，将 where 条件加入 left join 的 on 条件中，并且对于订单 ID，也就是没有下过单的用户筛选保留，
+所以 Where 过滤掉的应该是还没有包含 Customers 表信息的数据，然后在和 Customer 连表。将上述 SQL 稍作修改，将 Customers 之后的结果集用括号包起来。
+
+返回 914 条记录：
 
 ```sql
--- 这是错误示例
 select *
 from Customers
-left join Orders
-  on Customers.CustomerID = Orders.CustomerID
-left join Order_Details
+left join (
+  SELECT Orders.CustomerID
+  from Orders
+  left join Order_Details
   on Orders.OrderNumber = Order_Details.OrderNumber
-left join Products
+  left join Products
   on Order_Details.ProductNumber = Products.ProductNumber
-left join Categories
+  left join Categories
   on Products.CategoryID = Categories.CategoryID
-  and  Categories.CategoryDescription = 'Bikes';
+  where Categories.CategoryDescription = 'Bikes'
+) as A
+on Customers.CustomerID = A.CustomerID
 ```
-
-不管怎么加，怎么修改，也无法正确，查询。
-
-对需求正确分析，应该将用户表 Customers 和下过自行车的订单集进行左外连接，从而保留没有下单自行车的用户。
 
 书中示例，返回 914 条记录：
 
@@ -415,6 +443,8 @@ on Customers.CustomerID = HelmetOrder.CustomerID
 where HelmetOrder.CustomerID is NUll;
 ```
 
+书中示例同上，可参考 view.sql 文件中 CH09_Customers_No_Helmets
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#9.7 使用外连接，显示没有任何销售代表(员工)的邮政编码与其相同的顾客</summary>
@@ -429,6 +459,8 @@ on Customers.CustZipCode = Employees.EmpZipCode
 where Employees.EmpZipCode is NULL;
 ```
 
+书中示例同上，可参考 view.sql 文件中 CH09_Customers_No_Rep_Same_Zip
+
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
 <summary markdown="span">#9.7 使用外连接，列出所有的商品及包含它的订单的日期</summary>
@@ -436,6 +468,7 @@ where Employees.EmpZipCode is NULL;
 查看错误示例：
 
 ```sql
+-- 这是错误示例
 select  ProductName, ood.OrderDate
 from Products
 left join (
@@ -447,7 +480,9 @@ left join (
 on Products.ProductNumber = ood.ProductNumber;
 ```
 
-返回 2681 条记录：
+一个 DISTINCT 引发的错误，上述 SQL 将连表的主键作为 DISTINCT 去重对象，将结果集所有的内容保存下来了，订单用户 id，订单日期，订单详情产品 id。而需求只要产品和日期，不同的用户可能在同一天对同一个产品进行下单，所以导致上述结果集还包含了用户信息。需求中只要求商品和订单日期，所以需要排除用户，进一步去重。
+
+返查看正确示例，回 2681 条记录：
 
 ```sql
 select  ProductName, ood.OrderDate
@@ -459,7 +494,8 @@ left join (
 	on Orders.OrderNumber = Order_Details.OrderNumber
 ) as ood
 on Products.ProductNumber = ood.ProductNumber;
-
 ```
+
+书中示例同上，可参考 view.sql 文件中 CH09_All_Products_Any_Order_Dates
 
 </details>
