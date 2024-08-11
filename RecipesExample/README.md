@@ -1152,3 +1152,42 @@ WHERE Recipes.RecipeID IN (
 ```
 
 </details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.7 使用子查询 TODO，显示所有的菜品类型及其包含的菜品数量</summary>
+
+提示: 使用聚合函数 COUNT
+
+书中示例，返回 7 条记录，可参考 view.sql 文件中 CH11_Count_Of_Recipe_Types:
+
+```sql
+SELECT
+	RecipeClassID,
+	RecipeClassDescription,
+	( SELECT COUNT(*) FROM Recipes
+		WHERE Recipes.RecipeClassID = Recipe_Classes.RecipeClassID
+	)
+	AS RecipeCount
+FROM Recipe_Classes;
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.7 使用子查询 TODO，列出在某个菜品中使用了且在该菜品中的度量单位不是默认度量单位的食材</summary>
+
+提示: 使用<> SOME 创建一个筛选器
+
+书中示例，返回 21 条记录，可参考 view.sql 文件中 CH11_Ingredients_Using_NonStandard_Measure:
+
+```sql
+SELECT IngredientID, IngredientName, MeasureAmountID
+FROM Ingredients
+WHERE MeasureAmountID <> ANY (
+		SELECT Recipe_Ingredients.MeasureAmountID
+		FROM Recipe_Ingredients
+		WHERE Recipe_Ingredients.IngredientID = Ingredients.IngredientID
+);
+```
+
+</details>

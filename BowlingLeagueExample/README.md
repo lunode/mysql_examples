@@ -636,3 +636,49 @@ WHERE Bowler_Scores.HandiCapScore > ALL (
 ```
 
 </details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.7 使用子查询 TODO，显示所有的投球手及其参加的比赛局数</summary>
+
+提示: 使用聚合函数 COUNT
+
+书中示例，返回 32 条记录，可参考 view.sql 文件中 CH11_Bowlers_And_Count_Games:
+
+```sql
+SELECT
+	BowlerFirstName,
+	BowlerLastName,
+	( SELECT COUNT(*) FROM Bowler_Scores
+		WHERE Bowler_Scores.BowlerID = Bowlers.BowlerID
+	) AS Games
+FROM Bowlers;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.7 使用子查询 TODO，列出原始得分比其球队中其他所有队员都低的投球手</summary>
+
+提示: 使用< ALL 创建一个筛选器;另外，使用 DISTINCT，以防有投球手在多次比赛中的得分都一样低
+
+书中示例，返回 3 条记录，可参考 view.sql 文件中 CH11_Bowlers_Low_Score:
+
+```sql
+SELECT DISTINCT
+	Bowlers.BowlerID,
+	Bowlers.BowlerFirstName,
+	Bowlers.BowlerLastName,
+	Bowler_Scores.RawScore
+FROM Bowlers
+INNER JOIN Bowler_Scores ON Bowlers.BowlerID = Bowler_Scores.BowlerID
+WHERE Bowler_Scores.RawScore < ALL (
+	SELECT BS2.RawScore FROM Bowlers
+	AS B2
+	INNER JOIN Bowler_Scores
+	AS BS2
+	ON B2.BowlerID = BS2.BowlerID
+	WHERE B2.BowlerID <> Bowlers.BowlerID
+	AND B2.TeamID = Bowlers.TeamID
+);
+```
+
+</details>

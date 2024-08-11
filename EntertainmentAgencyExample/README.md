@@ -452,3 +452,87 @@ WHERE EXISTS (
 ```
 
 </details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.7 使用子查询 TODO，列出所有的演唱组合及其签订的演出合约数量</summary>
+
+提示: 使用聚合函数 COUNT
+
+书中示例，返回 13 条记录，可参考 view.sql 文件中 CH11_Entertainer_Engagement_Count:
+
+```sql
+SELECT
+	Entertainers.EntStageName,
+	(
+		SELECT COUNT(*)
+		FROM Engagements
+		WHERE Engagements.EntertainerID = Entertainers.EntertainerID
+	) AS EngageCount
+FROM Entertainers;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.7 使用子查询 TODO，列出与演奏乡村音乐或乡村摇滚的演唱组合签约过的顾客</summary>
+
+提示: 使用 IN 创建一个筛选器
+
+书中示例，返回 13 条记录，可参考 view.sql 文件中 CH11_Customers_Who_Like_Country:
+
+```sql
+SELECT CustomerID, CustFirstName, CustLastName
+FROM Customers
+WHERE Customers.CustomerID IN (
+	SELECT Engagements.CustomerID
+	FROM (
+		(
+			Musical_Styles
+			INNER JOIN Entertainer_Styles ON Musical_Styles.StyleID = Entertainer_Styles.StyleID
+		)
+		INNER JOIN Entertainers ON Entertainers.EntertainerID = Entertainer_Styles.EntertainerID
+	)
+	INNER JOIN Engagements ON Entertainers.EntertainerID = Engagements.EntertainerID
+	WHERE Musical_Styles.StyleName = 'Country'
+	OR Musical_Styles.StyleName = 'Country Rock'
+);
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.7 使用子查询 TODO，找出给顾客 Berg 或 Hallmark 演出过的演唱组合</summary>
+
+提示: 使用= SOME 创建一个筛选器
+
+书中示例，返回 8 条记录，可参考 view.sql 文件中 CH11_Entertainers_Berg_OR_Hallmark_SOME:
+
+```sql
+SELECT EntertainerID, EntStageName
+FROM Entertainers
+WHERE Entertainers.EntertainerID = SOME (
+	SELECT Engagements.EntertainerID
+	FROM Customers
+	INNER JOIN Engagements
+	ON Customers.CustomerID = Engagements.CustomerID
+	WHERE Customers.CustLastName = 'Berg'
+	OR Customers.CustLastName = 'Hallmark'
+);
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.7 使用子查询 TODO，显示没有签订任何演出合约的经纪人</summary>
+
+提示: 使用 NOT IN 创建一个筛选器
+
+书中示例，返回 1 条记录，可参考 view.sql 文件中 CH11_Bad_Agents:
+
+```sql
+SELECT AgentID, AgtFirstName, AgtLastName
+FROM Agents
+WHERE Agents.AgentID NOT IN (
+	SELECT Engagements.AgentID
+	FROM Engagements
+);
+```
+
+</details>

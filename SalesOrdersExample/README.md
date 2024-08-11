@@ -963,3 +963,67 @@ WHERE Customers.CustomerID = ANY (
 ```
 
 </details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.7 使用子查询 TODO，显示所有的商品及其最后一次被订购的日期</summary>
+
+提示:使用聚合函数 MAX
+
+书中示例，返回 40 条记录，可参考 view.sql 文件中 CH11_Products_Last_Date:
+
+```sql
+SELECT
+	Products.ProductNumber,
+	Products.ProductName,
+	(	SELECT max(Orders.OrderDate)
+		FROM Orders
+		INNER JOIN Order_Details
+		ON Orders.OrderNumber = Order_Details.OrderNumber
+		WHERE Order_Details.ProductNumber = Products.ProductNumber
+	)
+	AS LastOrder
+FROM Products;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.7 使用子查询 TODO，列出订购了自行车的顾客</summary>
+
+提示: 使用 IN 创建一个筛选器
+
+书中示例，返回 23 条记录，可参考 view.sql 文件中 CH11_Customers_Ordered_Bikes_IN:
+
+```sql
+SELECT CustomerID, CustFirstName, CustLastName
+FROM Customers
+WHERE Customers.CustomerID IN (
+	SELECT Orders.CustomerID
+	FROM (
+		(
+			Orders
+			INNER JOIN Order_Details ON Orders.OrderNumber = Order_Details.OrderNumber
+		)
+		INNER JOIN Products ON Products.ProductNumber = Order_Details.ProductNumber
+	)
+	INNER JOIN Categories ON Categories.CategoryID = Products.CategoryID
+	WHERE Categories.CategoryDescription = 'Bikes'
+);
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.7 使用子查询 TODO，哪些商品从未被订购过</summary>
+
+提示: 使用 NOT IN 创建一个筛选器
+
+书中示例，返回 2 条记录，可参考 view.sql 文件中 CH11_Products_Not_Ordered:
+
+```sql
+SELECT Products.ProductName
+FROM Products
+WHERE Products.ProductNumber NOT IN (
+	SELECT Order_Details.ProductNumber
+	FROM Order_Details
+);
+```
+
+</details>

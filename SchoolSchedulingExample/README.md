@@ -613,3 +613,64 @@ WHERE Students.StudentID NOT IN (
 ```
 
 </details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.7 使用子查询 TODO，列出所有的教员及其讲授的课程数量</summary>
+
+提示: 使用聚合函数 COUNT
+
+书中示例，返回 27 条记录，可参考 view.sql 文件中 CH11_Staff_Class_Count:
+
+```sql
+SELECT
+	StaffID,
+	StfFirstName,
+	StfLastname,
+	( SELECT count(*) FROM Faculty_Classes
+		WHERE Faculty_Classes.StaffID = Staff.StaffID
+	) AS ClassCount
+FROM Staff;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.7 使用子查询 TODO，显示注册了周二上课的课程的学生</summary>
+
+提示: 使用 IN 创建一个筛选器
+
+书中示例，返回 18 条记录，可参考 view.sql 文件中 CH11_Students_In_Class_Tuesdays:
+
+```sql
+SELECT StudentID, StudFirstName, StudLastName
+FROM Students
+WHERE (
+	StudentID IN (
+		SELECT StudentID FROM Student_Schedules
+		INNER JOIN Classes ON Student_Schedules.ClassID = Classes.ClassID
+		WHERE Classes.TuesdaySchedule = 1
+	)
+);
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.7 使用子查询 TODO，列出有课程在周三上课的科目</summary>
+
+提示: 使用 IN 创建一个筛选器
+
+书中示例，返回 34 条记录，可参考 view.sql 文件中 CH11_Subjects_On_Wednesday:
+
+```sql
+SELECT
+	Categories.CategoryDescription,
+	Subjects.SubjectID,
+	Subjects.SubjectCode,
+	Subjects.SubjectName
+FROM Categories
+INNER JOIN Subjects ON Categories.CategoryID = Subjects.CategoryID
+WHERE Subjects.SubjectID IN (
+  SELECT SubjectID FROM Classes WHERE Classes.WednesdaySchedule = 1
+);
+```
+
+</details>
