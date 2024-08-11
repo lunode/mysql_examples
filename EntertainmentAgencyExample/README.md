@@ -123,7 +123,7 @@ inner join Engagements
 on Entertainers.EntertainerID = Engagements.EntertainerID;
 ```
 
-书中示例同上。
+书中示例同上，可参考 view.sql 文件中 CH08_Entertainers_And_Contracts。
 
 </details>
 
@@ -145,7 +145,7 @@ where Customers.CustLastName =  'Berg'
 or Customers.CustLastName = 'Hallmark';
 ```
 
-书中示例，返回 8 条记录：
+书中示例，返回 8 条记录，可参考 view.sql 文件中 CH08_Entertainers_For_Berg_OR_Hallmark：
 
 ```sql
 SELECT DISTINCT Entertainers.EntStageName
@@ -193,7 +193,7 @@ from(
 );
 ```
 
-书中示例，返回 4 条记录：
+书中示例，返回 4 条记录，可参考 view.sql 文件中 CH08_Entertainers_Berg_AND_Hallmark：
 
 ```sql
 SELECT EntBerg.EntStageName
@@ -308,7 +308,7 @@ on Entertainers.EntertainerID = Engagements.EntertainerID
 where Engagements.EntertainerID is NULL;
 ```
 
-书中示例同上。
+书中示例同上，可参考 view.sql 文件中 CH09_Entertainers_Never_Booked。
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -333,6 +333,8 @@ left join (
 on Musical_Preferences.StyleID = Musical_Styles.StyleID;
 ```
 
+书中示例同上左连接示例，可参考 view.sql 文件中 CH09_All_Styles_And_Any_Customers。
+
 知晓逻辑后就可以使用右外连接来改写上述 SQL，返回 41 条记录：
 
 ```sql
@@ -344,8 +346,6 @@ on Customers.CustomerID = Musical_Preferences.CustomerID
 right join Musical_Styles
 on Musical_Styles.StyleID = Musical_Preferences.StyleID
 ```
-
-书中示例同上左连接。
 
 </details>
 
@@ -394,5 +394,61 @@ on Entertainers.EntertainerID = Engagements.EntertainerID;
 ```
 
 书中示例同上，可参考 view.sql 文件中的 CH09_All_Entertainers_And_Any_Engagements
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#10.4 使用 union，生成一个包含经纪人和演唱组合的清单</summary>
+
+书中示例，返回 22 条记录，可参考 view.sql 文件中 CH10_Agents_UNION_Entertainers：
+
+```sql
+SELECT
+concat(Agents.AgtLastName, ', ', Agents.AgtFirstName) AS NAME,
+'Agent' AS Type
+FROM Agents
+UNION
+SELECT
+	Entertainers.EntStageName,
+	'Entertainer' AS Type
+FROM Entertainers
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.5.1 列表达式中使用标量子查询，显示所有的顾客及其签订的最后一个演出合约的演出日期</summary>
+
+书中示例，返回 15 条记录，可参考 view.sql 文件中 CH11_Customers_Last_Booking：
+
+```sql
+SELECT
+	Customers.CustFirstName,
+	Customers.CustLastName,
+	( SELECT MAX( StartDate ) FROM Engagements
+		WHERE Engagements.CustomerID = Customers.CustomerID
+	)
+	AS LastBooking
+FROM Customers;
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.5.2 筛选器中使用子查询，列出给顾客 Berg 演出过的演唱组合</summary>
+
+书中示例，返回 6 条记录，可参考 view.sql 文件中 CH11_Entertainers_Berg_EXISTS：
+
+```sql
+SELECT EntertainerID, EntStageName
+FROM Entertainers
+WHERE EXISTS (
+	SELECT * FROM Customers
+	INNER JOIN Engagements
+	ON Customers.CustomerID = Engagements.CustomerID
+	WHERE Customers.CustLastName = 'Berg'
+	AND Engagements.EntertainerID = Entertainers.EntertainerID
+)
+```
 
 </details>

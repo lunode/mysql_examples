@@ -122,6 +122,8 @@ inner join Categories
 on Products.CategoryID = Categories.CategoryID;
 ```
 
+书中示例同上，可参考 view.sql 文件中 CH08_Products_And_Categories。
+
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -145,7 +147,7 @@ on Order_Details.ProductNumber = Products.ProductNumber
 where ProductName like '%helmet%';
 ```
 
-书中示例，返回 25 条记录:
+书中示例，返回 25 条记录，可参考 view.sql 文件中 CH08_Customers_Who_Ordered_Helmets:
 
 ```sql
 SELECT DISTINCT Customers.CustFirstName, Customers.CustLastName
@@ -222,7 +224,7 @@ INNER JOIN (
 on A.CustomerID = B.CustomerID;
 ```
 
-书中示例，返回 21 条记录：
+书中示例，返回 21 条记录，可参考 view.sql 文件中 CH08_Customers_Both_Bikes_And_Helmets：
 
 ```sql
 SELECT CustBikes.CustFirstName,
@@ -393,7 +395,7 @@ Order_Details.ProductNumber
 WHERE Order_Details.OrderNumber IS NULL;
 ```
 
-书中示例同上。
+书中示例同上，可参考 view.sql 文件中 CH09_Products_Never_Ordered。
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -449,7 +451,7 @@ left join (
 on Customers.CustomerID = A.CustomerID
 ```
 
-书中示例，返回 914 条记录：
+书中示例，返回 914 条记录，可参考 view.sql 文件中 CH09_All_Customers_And_Any_Bike_Orders：
 
 ```sql
 select
@@ -553,5 +555,411 @@ on Products.ProductNumber = ood.ProductNumber;
 ```
 
 书中示例同上，可参考 view.sql 文件中 CH09_All_Products_Any_Order_Dates
+
+</details>
+
+**`union 自带去重效果，union all 则不会去重。`**
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#10.2 使用 union，生成单个邮寄清单，其中包含顾客的姓名、地址、城市、州和邮政编码以及供应商的名称、地址、城市、州和邮政编码。</summary>
+
+需求分析，比如中秋节，企业需要给客户以及供应商送月饼，所以需要获取这两个不相干的表的地址并集。
+
+书中示例，返回 38 条记录：
+
+```sql
+SELECT
+concat(CustLastName, ', ', CustFirstName) AS MailingName,
+CustStreetAddress, CustCity, CustState,CustZipCode
+FROM Customers UNION
+SELECT VendName, VendStreetAddress, VendCity, VendState, VendZipCode
+FROM Vendors
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+
+<summary markdown="span">#10.2 使用 union，列出顾客及其订购的自行车以及供应商及其销售的自行车。</summary>
+
+很明显是顾客订购的自行车订单，以及供应商销售的自行车的并集。
+
+书中示例，返回 119 条记录：
+
+```sql
+SELECT concat( Customers.CustLastName, ', ', Customers.CustFirstName ) AS FullName,
+Products.ProductName, 'Customer' AS RowID
+FROM(
+	(
+		Customers
+		INNER JOIN Orders
+		ON Customers.CustomerID = Orders.CustomerID
+	)
+	INNER JOIN Order_Details ON Orders.OrderNumber = Order_Details.OrderNumber
+)
+INNER JOIN Products
+ON Products.ProductNumber = Order_Details.ProductNumber
+WHERE Products.ProductName LIKE '%bike%'
+UNION
+SELECT Vendors.VendName, Products.ProductName, 'Vendor' AS RowID
+FROM (
+	Vendors
+	INNER JOIN Product_Vendors ON Vendors.VendorID = Product_Vendors.VendorID
+)
+INNER JOIN Products
+ON Products.ProductNumber = Product_Vendors.ProductNumber
+WHERE Products.ProductName LIKE '%bike%'
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#10.2 使用 union，生成一个包含顾客、员工和供应商的邮寄清单。</summary>
+
+很明显是顾客订购的自行车订单，以及供应商销售的自行车的并集。
+
+书中示例，返回 45 条记录：
+
+```sql
+SELECT
+	concat(Customers.CustFirstName, ' ', Customers.CustLastName) AS CustFullName,
+	Customers.CustStreetAddress,
+	Customers.CustCity,
+	Customers.CustState,
+	Customers.CustZipCode,
+	'customer' as type
+FROM Customers
+UNION
+SELECT
+	concat(Employees.EmpFirstName, ' ', Employees.EmpLastName) AS EmpFullName,
+	Employees.EmpStreetAddress,
+	Employees.EmpCity,
+	Employees.EmpState,
+	Employees.EmpZipCode,
+	'employees' as type
+FROM Employees
+UNION
+SELECT
+	Vendors.VendName,
+	Vendors.VendStreetAddress,
+	Vendors.VendCity,
+	Vendors.VendState,
+	Vendors.VendZipCode,
+	'vendors' as type
+FROM Vendors
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#10.2 使用 union，生成一个包含顾客、员工和供应商的邮寄清单，并按照邮政编码排序。</summary>
+
+此结果集中，order by 并不是最后一个 select 语句的排序语句，而是整个结果集的排序语句。
+
+书中示例，返回 45 条记录：
+
+```sql
+SELECT
+	concat(Customers.CustFirstName, ' ', Customers.CustLastName) AS CustFullName,
+	Customers.CustStreetAddress,
+	Customers.CustCity,
+	Customers.CustState,
+	Customers.CustZipCode,
+FROM Customers
+UNION
+SELECT
+	concat(Employees.EmpFirstName, ' ', Employees.EmpLastName) AS EmpFullName,
+	Employees.EmpStreetAddress,
+	Employees.EmpCity,
+	Employees.EmpState,
+	Employees.EmpZipCode,
+FROM Employees
+UNION
+SELECT
+	Vendors.VendName,
+	Vendors.VendStreetAddress,
+	Vendors.VendCity,
+	Vendors.VendState,
+	Vendors.VendZipCode,
+FROM Vendors
+ORDER BY CustZipCode; -- [!code ++]
+```
+
+也可以按照字段的序列号来排序，zipcode 的字段排第 5
+
+```sql
+ORDER BY CustZipCode; -- [!code --]
+ORDER BY 5 -- [!code ++]
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#10.4 使用 union all，列出所有顾客和员工的姓名和地址(包括重复的内容)，并按邮政编码排序。</summary>
+
+书中示例，返回 36 条记录，可参考 view.sql 文件中 CH10_Customers_UNION_ALL_Employees：
+
+```sql
+SELECT Customers.CustFirstName, Customers.CustLastName,
+Customers.CustStreetAddress,
+Customers.CustCity,
+Customers.CustState, Customers.CustZipCode
+FROM Customers
+UNION ALL
+SELECT Employees.EmpFirstName,Employees.EmpLastName,
+Employees.EmpStreetAddress, Employees.EmpCity,
+Employees.EmpState, Employees.EmpZipCode
+FROM Employees
+ORDER BY CustZipCode
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#10.4 使用 union，列出所有订购了自行车的顾客，还有所有订购了头盔的员工。</summary>
+
+书中示例，返回 52 条记录，可参考 view.sql 文件中 CH10_Customer_Order_Bikes_UNION_Customer_Order_Helmets：
+
+```sql
+SELECT Customers.CustFirstName, Customers.CustLastName, 'Bike' AS ProdType
+FROM	(
+	(
+		Customers
+		INNER JOIN Orders ON Customers.CustomerID = Orders.CustomerID
+	)
+	INNER JOIN Order_Details ON Orders.OrderNumber = Order_Details.OrderNumber
+)
+INNER JOIN Products
+ON Products.ProductNumber = Order_Details.ProductNumber
+WHERE Products.ProductName LIKE '%bike%'
+UNION
+SELECT Customers.CustFirstName, Customers.CustLastName, 'Helmet' AS ProdType
+FROM (
+	(
+		Customers
+		INNER JOIN Orders
+		ON Customers.CustomerID = Orders.CustomerID
+	)
+	INNER JOIN Order_Details
+	ON Orders.OrderNumber = Order_Details.OrderNumber
+)
+INNER JOIN Products
+ON Products.ProductNumber = Order_Details.ProductNumber
+WHERE Products.ProductName LIKE '%helmet%'
+```
+
+可以使用 where 子句来处理并集的问题，并且 Mysql 对此有优化，比 union 性能高效很多。
+
+书中示例 2，返回 52 条记录，可参考 view.sql 文件中 CH10_Customer_Order_Bikes_UNION_Customer_Order_Helmets：
+
+```sql
+SELECT DISTINCT
+	Customers.CustFirstName,
+	Customers.CustLastName
+FROM (
+	(
+		Customers
+		INNER JOIN Orders
+		ON Customers.CustomerID = Orders.CustomerID
+	)
+	INNER JOIN Order_Details
+	ON Orders.OrderNumber = Order_Details.OrderNumber
+)
+	INNER JOIN Products
+	ON Products.ProductNumber = Order_Details.ProductNumber
+WHERE Products.ProductName LIKE '%bike%'
+OR Products.ProductName LIKE '%helmet%'
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.2 列表达式中使用标量子查询，列出在 2017 年 10 月 3 日发货的所有订单以及与每个订单相关的顾客的姓</summary>
+
+书中示例，返回 3 条记录：
+
+```sql
+SELECT
+	Orders.OrderNumber,
+	Orders.OrderDate,
+	Orders.ShipDate,
+	( SELECT Customers.CustLastName FROM Customers
+		WHERE Customers.CustomerID = Orders.CustomerID  )
+FROM Orders
+WHERE Orders.ShipDate = '2017-10-03'
+```
+
+这是一个 `标量子查询`，作为 `列表达式的子查询`，在子查询中使用限定条件，让子查询只返回一行一列。
+
+实际上对于这个需求，推荐使用 inner join 来使用。
+
+书中示例，返回 3 条记录：
+
+```sql
+SELECT
+	Orders.OrderNumber,
+	Orders.OrderDate,
+	Orders.ShipDate,
+	Customers.CustLastName
+FROM Customers
+INNER JOIN Orders
+ON Customers.CustomerID = Orders.CustomerID
+WHERE Orders.ShipDate = '2017-10-03'
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.2 列表达式中使用标量子查询，列出所有顾客的姓名并计算他们各自下了多少个订单</summary>
+
+书中示例，返回 28 条记录：
+
+```sql
+SELECT
+	Customers.CustFirstName,
+	Customers.CustLastName,
+	(
+		SELECT COUNT(*) FROM Orders
+		WHERE Orders.CustomerID = Customers.CustomerID
+	) AS CountOfOrders
+FROM Customers;
+```
+
+这是一个 `标量子查询`，作为 `列表达式的子查询`，在子查询中使用限定条件，让子查询只返回一行一列。
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.2 列表达式中使用标量子查询，列出所有顾客及其最后一次下单的日期</summary>
+
+书中示例，返回 28 条记录：
+
+```sql
+SELECT
+	Customers.CustFirstName,
+	Customers.CustLastName,
+	(
+		SELECT MAX(OrderDate) FROM Orders
+		WHERE Orders.CustomerID = Customers.CustomerID
+	) AS LastOrderDate
+FROM Customers;
+```
+
+这是一个 `标量子查询`，作为 `列表达式的子查询`，在子查询中使用限定条件，让子查询只返回一行一列。
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.3 筛选器中使用标量子查询，列出所有顾客以及每位顾客最后一个订单的详情</summary>
+
+书中示例，返回 112 条记录：
+
+```sql
+SELECT
+	Customers.CustFirstName,
+	Customers.CustLastName,
+	Orders.OrderNumber,
+	Orders.OrderDate,
+	Order_Details.ProductNumber,
+	Products.ProductName,
+	Order_Details.QuantityOrdered
+FROM (
+	(
+		Customers
+		INNER JOIN Orders ON Customers.CustomerID = Orders.CustomerID
+	)
+	INNER JOIN Order_Details ON Orders.OrderNumber = Order_Details.OrderNumber
+)
+INNER JOIN Products ON Products.ProductNumber = Order_Details.ProductNumber
+WHERE Orders.OrderDate = (
+	SELECT MAX(OrderDate)
+	FROM Orders AS O2
+	WHERE O2.CustomerID = Customers.CustomerID
+)
+```
+
+这是一个 `标量子查询`，作为 `Where子句中的子查询`，在子查询中使用限定条件，让子查询只返回一行一列。
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.3 筛选器中使用限定谓词 ALL，列出使用了牛肉或大蒜的菜品</summary>
+
+书中示例，返回 4 条记录
+
+```sql
+SELECT Products.ProductName, Products.RetailPrice
+FROM Products
+INNER JOIN Categories
+ON Products.CategoryID = Categories.CategoryID
+WHERE Categories.CategoryDescription = 'Accessories'
+AND Products.RetailPrice > ALL (
+	SELECT Products.RetailPrice
+	FROM Products
+	INNER JOIN Categories
+	ON Products.CategoryID = Categories.CategoryID
+  WHERE  Categories.CategoryDescription = 'Clothing'
+)
+```
+
+上述 SQL 中使用了表子查询和标量子查询，以及使用限定谓词 ALL 来过滤数据。
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.3 筛选器中使用限定谓词 EXISTS，列出使用了牛肉或大蒜的菜品</summary>
+
+书中示例，返回 23 条记录
+
+```sql
+SELECT CustomerID, CustFirstName, CustLastName
+FROM Customers
+WHERE EXISTS (
+	SELECT * FROM (
+		Orders
+		INNER JOIN Order_Details
+		ON Orders.OrderNumber = Order_Details.OrderNumber
+	)
+	INNER JOIN Products
+	ON Products.ProductNumber = Order_Details.ProductNumber
+	WHERE Products.CategoryID = 2
+	AND Orders.CustomerID = Customers.CustomerID
+)
+```
+
+上述 SQL 中使用了表子查询和标量子查询，以及使用限定谓词 EXISTS 来过滤数据。
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.5.1 列表达式中使用标量子查询，列出所有的供应商及其向我们提供的商品数量</summary>
+
+书中示例如下，返回 10 条记录，可参考 view.sql 文件中 CH11_Vendors_Product_Count：
+
+```sql
+SELECT
+	VendName,
+  ( SELECT COUNT(*) FROM Product_Vendors
+		WHERE Product_Vendors.VendorID = Vendors.VendorID
+	)
+	AS VendProductCount
+FROM Vendors;
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.5.2 筛选器中使用子查询，显示订购了衣服或配饰的顾客</summary>
+
+书中示例，返回 27 条记录，可参考 view.sql 文件中 CH11_Customers_Clothing_OR_Accessories：
+
+```sql
+SELECT CustomerID, CustFirstName, CustLastName
+FROM Customers
+WHERE Customers.CustomerID = ANY (
+	SELECT Orders.CustomerID
+	FROM (
+		(
+			Orders
+			INNER JOIN Order_Details
+			ON Orders.OrderNumber = Order_Details.OrderNumber
+		)
+		INNER JOIN Products ON Products.ProductNumber = Order_Details.ProductNumber
+	)
+	INNER JOIN Categories ON Categories.CategoryID = Products.CategoryID
+	WHERE Categories.CategoryDescription = 'Clothing'
+	OR Categories.CategoryDescription = 'Accessories'
+)
+```
 
 </details>

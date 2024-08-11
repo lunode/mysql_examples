@@ -285,7 +285,7 @@ where Recipe_Ingredients.IngredientID in (
 );
 ```
 
-书中示例，返回 5 条记录：
+书中示例，返回 5 条记录，可参考 view.sql 文件中的 CH08_Beef_Or_Garlic_Recipes：
 
 ```sql
 SELECT DISTINCT Recipes.RecipeTitle
@@ -297,7 +297,7 @@ WHERE Recipe_Ingredients.IngredientID IN (1, 9);
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
-<summary markdown="span">#8.4.1 使用内连接，列出主菜及其使用的所有食材</summary>
+<summary markdown="span">#8.4.2 使用内连接，列出主菜及其使用的所有食材</summary>
 
 返回 53 条记录：
 
@@ -315,7 +315,7 @@ on Recipe_Ingredients.MeasureAmountID = Measurements.MeasureAmountID
 where Recipe_Classes.RecipeClassDescription = 'Main Course';
 ```
 
-书中示例，返回 53 条记录：
+书中示例，返回 53 条记录，可参考 view.sql 文件中 CH08_Main_Course_Ingredients：
 
 ```sql
 SELECT Recipes.RecipeTitle,Ingredients.IngredientName,
@@ -361,7 +361,7 @@ INNER JOIN Recipe_Ingredients ON RecipeIDTable.RecipeID = Recipe_Ingredients.Rec
 INNER JOIN Ingredients ON Recipe_Ingredients.IngredientID = Ingredients.IngredientID
 ```
 
-书中示例，返回 16 条
+书中示例，返回 16 条，可参考 view.sql 文件中 CH08_Recipes_Containing_Carrots：
 
 ```sql
 SELECT
@@ -813,7 +813,7 @@ on Ingredients.IngredientID = Recipe_Ingredients.IngredientID
 where Recipe_Ingredients.RecipeId is NULL;
 ```
 
-书中示例同上。
+书中示例同上，可参考 view.sql 文件中 CH09_Ingredients_Not_Used。
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -837,9 +837,10 @@ Measurements 和 第 1 部分是 1 对多，实际上反过来，第 1 部分和
 
 然后第 2 部分和 第 1 部分是 1 对多关系，为了保全两张表的全部信息，所以要全外连接。
 
-书中示例，返回 109 条记录，由于 MySQL 不支持全外连接，所以需要自己转换 SQL：
+书中示例，返回 109 条记录，CH09_All_Recipe_Classes_All_Recipes：
 
 ```sql
+-- 由于 MySQL 不支持全外连接，所以需要自己转换 SQL
 SELECT
 	Recipe_Classes.RecipeClassDescription,
 	Recipes.RecipeTitle,
@@ -946,5 +947,208 @@ on Recipes.RecipeClassID = Recipe_Classes.RecipeClassID
 ```
 
 书中示例同上，返回 16 条记录，可参考 view.sql 文件 CH09_All_RecipeClasses_And_Matching_Recipes
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#10.4 使用 union，生成一个索引表，其中包含所有的菜品类型、菜品名和食材</summary>
+
+书中示例，返回 101 条记录，返回 view.sql 文件中 CH10_Classes_Recipes_Ingredients：
+
+```sql
+SELECT
+	Recipe_Classes.RecipeClassDescription AS IndexName,
+	'Recipe Class' AS Type
+FROM Recipe_Classes
+UNION
+SELECT
+	Recipes.RecipeTitle,
+	'Recipe' AS Type
+FROM Recipes
+UNION
+SELECT
+	Ingredients.IngredientName,
+	'Ingredient' AS Type
+FROM Ingredients
+```
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.3 在筛选器中使用标量子查询，列出所有包含海鲜食材分类的菜品</summary>
+
+书中示例，返回 2 条记录：
+
+```sql
+SELECT RecipeTitle
+FROM Recipes
+WHERE Recipes.RecipeID IN (
+	SELECT RecipeID
+	FROM Recipe_Ingredients
+	WHERE Recipe_Ingredients.IngredientID IN (
+		SELECT IngredientID
+		FROM Ingredients
+		INNER JOIN Ingredient_Classes
+		ON Ingredients.IngredientClassID = Ingredient_Classes.IngredientClassID
+		WHERE Ingredient_Classes.IngredientClassDescription = 'Seafood'
+	)
+);
+```
+
+以及上自查询内的子查询内的内连接也可以改为子查询
+
+```sql
+SELECT RecipeTitle
+FROM Recipes
+WHERE Recipes.RecipeID IN (
+	SELECT RecipeID
+	FROM Recipe_Ingredients
+	WHERE Recipe_Ingredients.IngredientID IN (
+		SELECT IngredientID
+		FROM Ingredients
+    WHERE Ingredients.IngredientClassID IN (
+			SELECT IngredientClassID
+      FROM Ingredient_Classes
+      WHERE Ingredient_Classes.IngredientClassDescription = 'Seafood'
+		)
+	)
+);
+```
+
+使用过多的子查询会使 SQL 语句难以理解，尽可能使用内连接。
+
+```sql
+SELECT RecipeTitle
+FROM Recipes
+WHERE Recipes.RecipeID IN (
+	SELECT RecipeID FROM (
+			Recipe_Ingredients
+			INNER JOIN Ingredients
+			ON Recipe_Ingredients.IngredientID = Ingredients.IngredientID
+	)
+	INNER JOIN Ingredient_Classes ON Ingredients.IngredientClassID = Ingredient_Classes.IngredientClassID
+	WHERE Ingredient_Classes.IngredientClassDescription = 'Seafood'
+)
+```
+
+实际上完全可以全部使用内连接查询，返回 2 条记录：
+
+```sql
+select Recipes.RecipeTitle
+from Recipes
+inner join Recipe_Ingredients
+on Recipes.RecipeID = Recipe_Ingredients.RecipeID
+inner join Ingredients
+on Recipe_Ingredients.IngredientID = Ingredients.IngredientID
+inner join Ingredient_Classes
+on Ingredients.IngredientClassID = Ingredient_Classes.IngredientClassID
+where Ingredient_Classes.IngredientClassDescription = 'Seafood';
+```
+
+但要考虑到 Recipes 和 Recipe_Ingredient 是 1 对多 的关系，即一道菜品可能使用多道 Seafood 分类的食材，所以在上述 SQL 中还要使用 `DISTINCT` 去重，这又会加重 SQL 查询的负担。
+
+而且使用了 DISTINCT 的视图都是不可更新的，因为 DISTINCT 掩盖了底层行的身份，导致数据库系统不知道该更新哪一行
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.3 筛选器中使用子查询，列出所有使用了海鲜类食材的菜品以及它们各自使用的所有食材</summary>
+
+书中示例，返回 22 条记录
+
+```sql
+SELECT
+	Recipes.RecipeTitle,
+	Ingredients.IngredientName
+FROM (
+		Recipes
+		INNER JOIN Recipe_Ingredients
+		ON Recipes.RecipeID = Recipe_Ingredients.RecipeID
+)
+INNER JOIN Ingredients ON Ingredients.IngredientID = Recipe_Ingredients.IngredientID
+WHERE Recipes.RecipeID IN (
+	SELECT RecipeID
+	FROM (
+		Recipe_Ingredients
+		INNER JOIN Ingredients
+		ON Recipe_Ingredients.IngredientID = Ingredients.IngredientID
+	)
+	INNER JOIN Ingredient_Classes
+	ON Ingredients.IngredientClassID = Ingredient_Classes.IngredientClassID
+	WHERE Ingredient_Classes.IngredientClassDescription = 'Seafood'
+)
+```
+
+上述 SQL 中使用了表子查询和标量子查询。
+
+</details>
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.3 筛选器中使用限定谓词ANY，列出使用了牛肉或大蒜的菜品</summary>
+
+书中示例，返回 5 条记录
+
+```sql
+SELECT Recipes.RecipeTitle
+FROM Recipes
+WHERE Recipes.RecipeID IN (
+	SELECT Recipe_Ingredients.RecipeID
+	FROM Recipe_Ingredients
+	WHERE Recipe_Ingredients.IngredientID = ANY (
+		SELECT Ingredients.IngredientID
+		FROM Ingredients
+		WHERE Ingredients.IngredientName IN ( 'Beef', 'Garlic' )
+	)
+)
+```
+
+上述 SQL 中使用了表子查询和标量子查询，以及使用限定谓词 ANY 来过滤数据。
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.5.1 列表达式中使用标量子查询，列出所有的肉食食材及其被用来制作的菜品的数量</summary>
+
+书中示例，返回 11 条记录，可参考 view.sql 文件中 CH11_Meat_Ingredient_Recipe_Count：
+
+```sql
+SELECT
+	Ingredient_Classes.IngredientClassDescription,
+	Ingredients.IngredientName,
+	(
+		SELECT COUNT(*) FROM Recipe_Ingredients
+		WHERE Recipe_Ingredients.IngredientID = Ingredients.IngredientID
+	)
+	AS RecipeCount
+FROM Ingredient_Classes
+INNER JOIN Ingredients
+ON Ingredient_Classes.IngredientClassID = Ingredients.IngredientClassID
+WHERE Ingredient_Classes.IngredientClassDescription = 'Meat';
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.5.2 筛选器中使用子查询，显示包含胡萝卜的菜品使用的所有食材</summary>
+
+书中示例，返回 16 条记录，可参考 view.sql 文件中 CH11_Recipes_Ingredients_With_Carrots：
+
+```sql
+SELECT
+	Recipes.RecipeTitle,
+  Ingredients.IngredientName
+FROM (
+	Recipes
+  INNER JOIN Recipe_Ingredients
+  ON Recipes.RecipeID = Recipe_Ingredients.RecipeID
+)
+INNER JOIN Ingredients
+ON Ingredients.IngredientID = Recipe_Ingredients.IngredientID
+WHERE Recipes.RecipeID IN (
+	SELECT Recipe_Ingredients.RecipeID
+  FROM Ingredients
+  INNER JOIN Recipe_Ingredients
+  ON Ingredients.IngredientID = Recipe_Ingredients.IngredientID
+  WHERE Ingredients.IngredientName = 'carrot'
+)
+```
 
 </details>

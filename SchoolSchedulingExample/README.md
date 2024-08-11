@@ -181,7 +181,7 @@ on Classes.SubjectID = Subjects.SubjectID
 where Classes.WednesdaySchedule = 1;
 ```
 
-书中示例同上。
+书中示例同上，可参考 view.sql 文件中 CH08_Subjects_On_Wednesday。
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -197,7 +197,7 @@ inner join Staff
 on Students.StudFirstName = Staff.StfFirstName
 ```
 
-书中示例同上。
+书中示例同上，可参考 view.sql 文件中 CH08_Students_Staff_Same_FirstName。
 
 </details>
 
@@ -384,7 +384,7 @@ on Faculty_Classes.StaffID = Staff.StaffID
 where Faculty_Classes.ClassID is NULL;
 ```
 
-书中示例同上。
+书中示例同上，可参考 view.sql 文件中 CH09_Staff_Not_Teaching。
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -392,7 +392,7 @@ where Faculty_Classes.ClassID is NULL;
 
 先分许需求，又是经典的多对多模型，Students 和 Classes 多对多，并且用了一张中间表 Students_Schedules。由于多表连续 left join 只能在 1 对多的情况下不会出现意外情况，所以 `Students left join Students_Schedules` 之后无法继续 `left join Clesses`。于是将多对一的 `Students_Schedules` 和 `Classes` 先内连接起来，`Students` 和它们的结果集 还是 1 对多的关系，可以 left jion。
 
-返回 5 条记录：
+返回 16 条记录：
 
 ```sql
 select StudFirstName,StudLastName
@@ -408,7 +408,7 @@ on Students.StudentID = A.StudentID
 where A.ClassID is NULL;
 ```
 
-书中示例同上。
+书中示例同上，可参考 view.sql 文件中 CH09_Students_Never_Withdrawn。
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -429,7 +429,7 @@ left join Classes
 on Subjects.SubjectID = Classes.SubjectID
 ```
 
-书中示例返回 145 条记录：
+书中示例，返回 145 条记录，可参考 view.sql 文件中 CH09_All_Categories_All_Subjects_Any_Classes：
 
 ```sql
 SELECT
@@ -530,5 +530,86 @@ on Staff.StaffID = Faculty_Classes.StaffID
 ```
 
 书中示例如上，可参考 view.sql 文件中的 CH09_All_Faculty_And_Any_Classes
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#10.4 使用 union，显示艺术课成绩不低于 85 的学生以及讲授艺术课且评分不低于 9 的教员</summary>
+
+书中示例，返回 12 条记录，可参考 view.sql 文件中 CH10_Good_Art_Students_And_Faculty：
+
+```sql
+SELECT
+	Students.StudFirstName AS FirstName,
+	Students.StudLastName AS LastName,
+	Student_Schedules.Grade AS Score,
+	'Student' AS Type
+FROM (
+	(
+		(
+			Students
+			INNER JOIN Student_Schedules ON Students.StudentID = Student_Schedules.StudentID
+		)
+		INNER JOIN Student_Class_Status ON Student_Class_Status.ClassStatus = Student_Schedules.ClassStatus
+	)
+	INNER JOIN Classes ON Classes.ClassID = Student_Schedules.ClassID
+)
+INNER JOIN Subjects ON Subjects.SubjectID = Classes.SubjectID
+WHERE Student_Class_Status.ClassStatusDescription = 'Completed'
+AND Student_Schedules.Grade >= 85
+AND Subjects.CategoryID = 'ART'
+UNION
+SELECT
+	Staff.StfFirstName,
+	Staff.StfLastName,
+	Faculty_Subjects.ProficiencyRating AS Score,
+	'Faculty' AS Type
+FROM (
+		Staff
+		INNER JOIN Faculty_Subjects
+		ON Staff.StaffID = Faculty_Subjects.StaffID
+)
+INNER JOIN Subjects
+ON Subjects.SubjectID = Faculty_Subjects.SubjectID
+WHERE Faculty_Subjects.ProficiencyRating > 8
+AND Subjects.CategoryID = 'ART'
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.5.1 列表达式中使用标量子查询，显示所有的科目及其包含的在周一上课的课程的数量</summary>
+
+书中示例，返回 56 条记录，可参考 view.sql 文件中 CH11_Subjects_Monday_Count：
+
+```sql
+SELECT
+	Subjects.SubjectName,
+	( SELECT COUNT(*) FROM Classes
+		WHERE MondaySchedule = 1
+		AND Classes.SubjectID = Subjects.SubjectID
+	)
+	AS MondayCount
+FROM Subjects;
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.5.2 筛选器中使用子查询，显示从未退过课的学生</summary>
+
+书中示例，返回 16 条记录，可参考 view.sql 文件中 CH11_Students_Never_Withdrawn：
+
+```sql
+SELECT StudentID, StudFirstName, StudLastName
+FROM Students
+WHERE Students.StudentID NOT IN (
+	SELECT Student_Schedules.StudentID
+  FROM Student_Schedules
+  INNER JOIN Student_Class_Status
+  ON Student_Schedules.ClassStatus = Student_Class_Status.ClassStatus
+  WHERE Student_Class_Status.ClassStatusDescription = 'Withdrew'
+);
+```
 
 </details>

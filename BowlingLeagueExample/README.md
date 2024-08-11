@@ -101,7 +101,7 @@ INNER JOIN Bowlers
 ON Teams.CaptainID = Bowlers.BowlerID;
 ```
 
-书中示例同上。
+书中示例同上，可参考 view.sql 文件中 CH08_Teams_And_Captains。
 
 </details>
 
@@ -136,9 +136,9 @@ Tournaments.TourneyDate,
 Tourney_Matches.MatchID;
 ```
 
-书中示例，为了获取比赛双方和赢家的队名，需要连 Team 表 3 次
+书中示例，返回 168 条记录，可参考 view.sql CH08_Tournament_Match_Game_Results：
 
-返回 168 条记录：
+为了获取比赛双方和赢家的队名，需要连 Team 表 3 次
 
 ```sql
 SELECT
@@ -221,6 +221,8 @@ inner join (
 	on A.BowlerID = B.BowlerID;
 ```
 
+无书中示例。
+
 </details>
 
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -260,7 +262,7 @@ inner join (
 	on A.BowlerID = B.BowlerID;
 ```
 
-书中示例，返回 11 条结果：
+书中示例，返回 11 条结果，可参考 view.sql 文件中 CH08_Good_Bowlers_TBird_And_Bolero：
 
 ```sql
 SELECT
@@ -377,7 +379,7 @@ on Tournaments.TourneyID = Tourney_Matches.TourneyID
 where Tourney_Matches.MatchID is NULL;
 ```
 
-书中示例同上。
+书中示例同上，可参考 view.sql 文件中 CH09_Tourney_Not_Yet_Played。
 
 </details>
 <details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
@@ -408,7 +410,7 @@ left join (
 on BowlerScore.BowlerID = Bowlers.BowlerID;
 ```
 
-书中示例，返回 106 行记录：
+书中示例，返回 106 行记录，可参考 view.sql 文件中 CH09_All_Bowlers_And_Scores_Over_180：
 
 ```sql
 SELECT
@@ -541,6 +543,96 @@ LEFT OUTER JOIN (
 ) AS TM
 ON Tournaments.TourneyID = TM.TourneyID
 ORDER BY Tournaments.TourneyID;
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#10.4 使用 union all，列出哪些球队(球队的名称和队长)在哪些联赛场次中开始使用的是单数球道，哪些球队(球队的名称和队长)在哪些联赛场次中开始使用的是双数球道，并按联赛日期和场次编号排序</summary>
+
+书中示例，返回 114 条记录，可参考 view.sql 文件中 CH10_Bowling_Schedule：
+
+```sql
+SELECT
+	Tournaments.TourneyLocation,
+	Tournaments.TourneyDate,
+	Tourney_Matches.MatchID,
+	Teams.TeamName,
+	concat( Bowlers.BowlerLastName, ', ', Bowlers.BowlerFirstName ) AS Captain,
+	'Odd Lane' AS Lane
+FROM (
+	(
+		Tournaments
+		INNER JOIN Tourney_Matches ON Tournaments.TourneyID = Tourney_Matches.TourneyID
+		)
+		INNER JOIN Teams ON Teams.TeamID = Tourney_Matches.OddLaneTeamID
+)
+INNER JOIN Bowlers ON Bowlers.BowlerID = Teams.CaptainID
+UNION ALL
+SELECT
+	Tournaments.TourneyLocation,
+	Tournaments.TourneyDate,
+	Tourney_Matches.MatchID,
+	Teams.TeamName,
+	concat( Bowlers.BowlerLastName, ', ', Bowlers.BowlerFirstName ) AS Captain,
+	'Even Lane' AS Lane
+FROM (
+	(
+		Tournaments
+		INNER JOIN Tourney_Matches ON Tournaments.TourneyID = Tourney_Matches.TourneyID
+	)
+	INNER JOIN Teams
+	ON Teams.TeamID = Tourney_Matches.EvenLaneTeamID
+)
+INNER JOIN Bowlers
+ON Bowlers.BowlerID = Teams.CaptainID
+ORDER BY 2,3
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.5.1 列表达式中使用标量子查询，示所有的投球手及其最高得分</summary>
+
+书中示例，返回 32 条记录，可参考 view.sql 文件中的 CH11_Bowler_High_Score：
+
+```sql
+SELECT
+	Bowlers.BowlerFirstName,
+	Bowlers.BowlerLastName,
+	( SELECT MAX( RawScore ) FROM Bowler_Scores
+		WHERE Bowler_Scores.BowlerID = Bowlers.BowlerID
+	)
+	AS HighScore
+FROM Bowlers;
+```
+
+</details>
+
+<details style="padding: 8px 20px; margin-bottom: 20px; background-color: rgba(142, 150, 170, 0.14);">
+<summary markdown="span">#11.5.2 筛选器中使用子查询，显示让分得分比其球队中其他球员都高的队长</summary>
+
+书中示例，返回 1 条记录，可参考 view.sql 文件中 CH11_Team_Captains_High_Score：
+
+```sql
+SELECT
+	Teams.TeamName,
+	Bowlers.BowlerID,
+	Bowlers.BowlerFirstName,
+	Bowlers.BowlerLastName,
+	Bowler_Scores.HandiCapScore
+FROM	(
+		Bowlers
+		INNER JOIN Teams ON Bowlers.BowlerID = Teams.CaptainID
+)
+INNER JOIN Bowler_Scores ON Bowlers.BowlerID = Bowler_Scores.BowlerID
+WHERE Bowler_Scores.HandiCapScore > ALL (
+	SELECT BS2.HandiCapScore
+	FROM Bowlers AS B2
+	INNER JOIN Bowler_Scores AS BS2 ON B2.BowlerID = BS2.BowlerID
+	WHERE B2.BowlerID <> Bowlers.BowlerID
+	AND B2.TeamID = Bowlers.TeamID
+)
 ```
 
 </details>
