@@ -3,6 +3,7 @@
 ## 案例
 
 - [zblog](./zblog/README.md) 博客/CMS 管理表结构
+- [ecshop](./ecshop/README.md) 开源商城
 
 ## 基础练习
 
